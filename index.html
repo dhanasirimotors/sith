@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#4b34c4">
+<title>My Planner</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+
+<style>
+:root{--bg:#f3f0fb;--card:#fff;--ink:#1f1a3d;--mute:#7a7396;--field:#f1eefa;--acc:#ff6b4a;--on:#fff;--sh:0 8px 22px rgba(70,45,160,.10);--line:#e6e0f6;--hi:#e5484d;--med:#f5a524;--low:#2fb5a0}
+@media(prefers-color-scheme:dark){:root{--bg:#120f26;--card:#1d1938;--ink:#efecff;--mute:#9b94be;--field:#2a2550;--sh:0 8px 22px rgba(0,0,0,.35);--line:#2f2a55}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,select{font:inherit;color:var(--ink)}
+.hero{background:linear-gradient(140deg,#2a2168 0%,#5a3fd1 60%,#8b5cf6 100%);color:#fff;padding:calc(18px + env(safe-area-inset-top,0px)) 18px 26px;border-radius:0 0 30px 30px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.sub{font-size:.9rem;opacity:.8}
+h1{margin:2px 0 0;font-size:1.7rem;font-weight:800;letter-spacing:-.02em}
+.dn{display:flex;gap:6px}
+.dn button{width:42px;height:42px;border:0;border-radius:14px;background:rgba(255,255,255,.18);color:#fff;font-size:1.2rem}
+.rings{display:flex;justify-content:space-around;margin-top:18px}
+.ring{text-align:center;width:30%}
+.ring svg{width:74px;height:74px;display:block;margin:0 auto 4px}
+.ring b{display:block;font-size:1.05rem}
+.ring span{font-size:.78rem;opacity:.8}
+main{padding:16px 14px 120px;max-width:560px;margin:0 auto}
+.card{background:var(--card);border-radius:22px;padding:16px;margin-bottom:14px;box-shadow:var(--sh)}
+h2{margin:0 0 12px;font-size:1.08rem;font-weight:800}
+input,select{width:100%;background:var(--field);border:2px solid transparent;border-radius:14px;padding:13px;min-width:0}
+input:focus,select:focus{outline:none;border-color:var(--acc)}
+.row{display:flex;gap:10px;margin-bottom:10px}.row>*{flex:1;min-width:0}
+.row>button{flex:0 0 auto}
+label{display:block;font-size:.85rem;color:var(--mute);margin:10px 0 5px;font-weight:600}
+.btn{border:0;border-radius:14px;padding:13px 18px;font-weight:700;background:var(--field);cursor:pointer}
+.go{background:var(--acc);color:#fff;box-shadow:0 6px 14px rgba(255,107,74,.35)}
+.item{display:flex;gap:12px;align-items:center;padding:12px;margin-top:8px;background:var(--field);border-radius:16px;border-left:6px solid var(--mute)}
+.item.High{border-left-color:var(--hi)}.item.Medium{border-left-color:var(--med)}.item.Low{border-left-color:var(--low)}
+.item.blk{border-left-color:#8b5cf6}.item.meal{border-left-color:var(--acc)}
+.grow{flex:1;min-width:0;overflow-wrap:anywhere}
+.when{font-weight:800;font-size:.92rem;color:#7c5ce6}
+@media(prefers-color-scheme:dark){.when{color:#b9a5ff}}
+.item.done .grow{opacity:.5;text-decoration:line-through}
+.item input[type=checkbox]{appearance:none;-webkit-appearance:none;flex:0 0 28px;width:28px;height:28px;border-radius:50%;border:3px solid var(--mute);background:transparent;padding:0}
+.item input[type=checkbox]:checked{background:var(--low);border-color:var(--low);box-shadow:inset 0 0 0 5px var(--field)}
+.x{border:0;background:none;color:var(--mute);font-size:1.1rem;padding:8px}
+.mute{color:var(--mute);font-size:.88rem}
+.empty{text-align:center;color:var(--mute);padding:18px 8px 8px}
+.empty b{display:block;font-size:1.8rem}
+.drops{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.drop{border:0;background:none;font-size:1.9rem;padding:4px;opacity:.22;filter:grayscale(.3)}
+.drop.on{opacity:1}
+.bar{height:12px;border-radius:8px;background:var(--field);overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,#ffc233,var(--acc))}
+.big{font-size:2.2rem;font-weight:800;text-align:center}
+.bk{display:flex;gap:8px;justify-content:space-between;align-items:center}
+nav{position:fixed;left:0;right:0;margin:auto;bottom:calc(12px + env(safe-area-inset-bottom,0px));width:calc(100% - 28px);max-width:520px;display:flex;gap:4px;background:var(--card);border-radius:24px;padding:6px;box-shadow:0 10px 30px rgba(40,20,120,.28)}
+nav button{flex:1;border:0;background:none;border-radius:18px;padding:8px 2px;font-size:.78rem;font-weight:700;color:var(--mute)}
+nav button span{display:block;font-size:1.35rem;line-height:1.2}
+nav button.on{background:var(--acc);color:#fff}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.chip{border:0;border-radius:20px;padding:8px 12px;background:var(--field);font-weight:700;font-size:.85rem}.chip.on{background:var(--acc);color:#fff}
+.ttg{display:grid;gap:2px 0}
+.dh{text-align:center;font-weight:800;font-size:.78rem;padding:6px 0;border-radius:10px;color:var(--mute)}
+.dh.today{background:var(--acc);color:#fff}
+.gut{position:relative}
+.gut span{position:absolute;right:4px;color:var(--mute);font-size:.62rem}
+.dc{position:relative;border-left:1px solid var(--line)}
+.tb{position:absolute;border:0;border-radius:8px;padding:3px 1px;overflow:hidden;text-align:center;background:hsl(var(--h),75%,87%);color:hsl(var(--h),60%,22%);line-height:1.15;display:flex;flex-direction:column;align-items:center}
+.tb b{font-size:.8rem}.tb span{font-size:.62rem;font-weight:700}
+.tb.sel{outline:3px solid var(--ink);z-index:2}
+@media(prefers-color-scheme:dark){.tb{background:hsl(var(--h),38%,30%);color:hsl(var(--h),85%,90%)}}
+.cls{display:flex;gap:12px;align-items:center;background:var(--field);border-radius:16px;padding:12px;margin-top:8px;border-left:6px solid hsl(var(--h),65%,55%)}
+.ct{text-align:center;min-width:56px}.ct b{display:block;font-size:1.1rem}.ct span{font-size:.82rem;color:var(--mute)}
+.cb{flex:1;min-width:0}.cb b{overflow-wrap:anywhere}
+.par{font-size:.76rem;font-weight:700;color:var(--med);margin-top:2px}
+.hid{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+button:focus-visible{outline:3px solid #8b5cf6;outline-offset:2px}
+</style></head><body>
+<div class="hero" id="hero"></div>
+<input type="date" id="day" class="hid" tabindex="-1" onchange="day=this.value||day;render()">
+<main id="main"></main>
+<nav>
+<button data-t="today" onclick="go('today')"><span>🗓️</span>Today</button>
+<button data-t="tasks" onclick="go('tasks')"><span>✅</span>Tasks</button>
+<button data-t="health" onclick="go('health')"><span>💪</span>Health</button>
+<button data-t="diet" onclick="go('diet')"><span>🍽️</span>Diet</button>
+<button data-t="uni" onclick="go('uni')"><span>📚</span>Schedule</button>
+<button data-t="more" onclick="go('more')"><span>🧭</span>More</button>
+</nav>
+<script>
+const $=s=>document.querySelector(s),K='planner_v1';
+let S;try{S=JSON.parse(localStorage.getItem(K))}catch(e){}
+S=S||{tasks:[],blocks:[],health:{},meals:[],goals:{water:8,kcal:2000},classes:[],deadlines:[]};
+S.classes=S.classes||[];S.deadlines=(S.deadlines||[]).filter(d=>d.course!=='Level 2 · Semester II');
+if(!S.mig1){S.classes=S.classes.filter(c=>!/QS2180|QS2170/.test(c.course));S.mig1=true;try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+const iso=d=>d.toLocaleDateString('en-CA');
+let tab='today',day=iso(new Date());
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const H=d=>S.health[d]||{water:0,sleep:'',ex:''};
+const kcalOf=d=>S.meals.filter(m=>m.date===d).reduce((s,m)=>s+m.kcal,0);
+const go=t=>{tab=t;render();scrollTo(0,0)};
+function shift(n){const d=new Date(day+'T00:00');d.setDate(d.getDate()+n);day=iso(d);render()}
+function pick(){const e=$('#day');e.showPicker?e.showPicker():e.click()}
+function tog(l,id){const i=S[l].find(x=>x.id===id);i.done=!i.done;save();render()}
+function del(l,id){S[l]=S[l].filter(x=>x.id!==id);save();render()}
+const val=id=>$('#'+id).value.trim();
+const empty=(i,t)=>`<div class="empty"><b>${i}</b>${t}</div>`;
+
+const ring=(p,c,big,small)=>`<div class="ring"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="7"/><circle cx="32" cy="32" r="26" fill="none" stroke="${c}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(Math.min(1,p||0)*163.4).toFixed(1)} 163.4" transform="rotate(-90 32 32)"/></svg><b>${big}</b><span>${small}</span></div>`;
+function hero(){
+ const d=new Date(day+'T00:00'),now=new Date(),h=now.getHours(),isNow=iso(now)===day;
+ const hi=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+ const title=tab==='today'?(isNow?hi:'Plan ahead'):{tasks:'Tasks',health:'Health',diet:'Diet',uni:'Schedule',more:'More'}[tab];
+ const date=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+ let r='';
+ if(tab==='today'){const bl=S.blocks.filter(b=>b.date===day),hh=H(day),kc=kcalOf(day);
+  r=`<div class="rings">${ring(hh.water/S.goals.water,'#5ce1e6',hh.water+'/'+S.goals.water,'Water')}${ring(kc/S.goals.kcal,'#ffc233',kc,'kcal')}${ring(bl.length?bl.filter(b=>b.done).length/bl.length:0,'#ff8a6b',bl.filter(b=>b.done).length+'/'+bl.length,'Blocks')}</div>`}
+ const nav=(tab==='tasks'||tab==='uni')?'':`<div class="dn"><button onclick="shift(-1)" aria-label="Previous day">‹</button><button onclick="pick()" aria-label="Pick a date">📅</button><button onclick="shift(1)" aria-label="Next day">›</button></div>`;
+ return `<div class="top"><div><div class="sub">${tab==='tasks'?'All your to-dos':tab==='uni'?'Timetable and deadlines':date}</div><h1>${title}</h1></div>${nav}</div>${r}`}
+
+const taskRow=t=>`<div class="item ${t.pri} ${t.done?'done':''}"><input type="checkbox" ${t.done?'checked':''} onchange="tog('tasks','${t.id}')" aria-label="Mark done"><div class="grow"><b>${ai(t.a)}${esc(t.title)}</b><div class="mute">${t.a?t.a+' · ':''}${t.pri} priority${t.due?' · due '+esc(t.due):''}</div></div><button class="x" onclick="del('tasks','${t.id}')" aria-label="Delete">✕</button></div>`;
+
+function vToday(){
+ const bl=S.blocks.filter(b=>b.date===day).sort((a,b)=>a.start.localeCompare(b.start));
+ const due=S.tasks.filter(t=>!t.done&&t.due===day);
+ return bkBanner()+uniToday()+fbCard()+`<div class="card"><h2>⏱️ Plan a time block</h2>
+ <div class="row"><div><label style="margin-top:0">From</label><input type="time" id="bs"></div><div><label style="margin-top:0">To</label><input type="time" id="be"></div></div>
+ <div class="row"><input id="bt" placeholder="What will you work on?"></div>
+ <div class="row">${aopt('ba')}</div>
+ <div class="row"><button class="btn go" onclick="addBlock()">Add to my day</button></div></div>
+ <div class="card"><h2>Your day</h2>${bl.map(b=>`<div class="item blk ${b.done?'done':''}"><input type="checkbox" ${b.done?'checked':''} onchange="tog('blocks','${b.id}')" aria-label="Mark done"><div class="grow"><div class="when">${esc(b.start)} – ${esc(b.end)}</div>${ai(b.a)}${esc(b.title)}</div><button class="x" onclick="del('blocks','${b.id}')" aria-label="Delete">✕</button></div>`).join('')||empty('🌤️','Nothing planned yet.<br>Add your first block above.')}</div>
+ ${due.length?`<div class="card"><h2>📌 Due today</h2>${due.map(taskRow).join('')}</div>`:''}
+ <div class="card"><h2>💾 Backup and reminders</h2><p class="mute" style="margin:0 0 10px">Your data is stored on this phone only. Save a backup file every week.</p><div class="row"><button class="btn" onclick="exp()">Save backup</button><button class="btn" onclick="$('#imp').click()">Restore</button></div><div class="row"><button class="btn go" onclick="cal()">🔔 Add reminders to phone calendar</button></div><input type="file" id="imp" accept=".json,application/json" class="hid" onchange="imp(event)"></div>`}
+function addBlock(){const s=val('bs'),t=val('bt');if(!s||!t){alert('Please enter a start time and a title.');return}
+ S.blocks.push({id:uid(),date:day,start:s,end:val('be')||s,title:t,a:$('#ba').value,done:false});save();render()}
+function exp(){if(nbk())return;S.lastBackup=Date.now();save();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download='planner-backup.json';a.click()}
+function imp(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.tasks||!d.blocks)throw 0;S=d;S.classes=S.classes||[];S.deadlines=S.deadlines||[];save();render()}catch(x){alert('That file is not a planner backup.')}};r.readAsText(f)}
+
+function vTasks(){
+ const o={High:0,Medium:1,Low:2},cmp=(a,b)=>o[a.pri]-o[b.pri]||(a.due||'9').localeCompare(b.due||'9');
+ const open=S.tasks.filter(t=>!t.done&&(fa==='All'||t.a===fa)).sort(cmp),dn=S.tasks.filter(t=>t.done);
+ return `<div class="card"><h2>✨ New task</h2><div class="row"><input id="tt" placeholder="What needs doing?"></div>
+ <div class="row"><div><label style="margin-top:0">Priority</label><select id="tp"><option>High</option><option selected>Medium</option><option>Low</option></select></div><div><label style="margin-top:0">Due date</label><input type="date" id="td"></div></div>
+ <div class="row"><div><label style="margin-top:0">Area</label>${aopt('ta')}</div></div>
+ <div class="row"><button class="btn go" onclick="addTask()">Add task</button></div></div>
+ <div class="card"><h2>To do (${open.length})</h2><div class="chips">${['All',...Object.keys(AREAS)].map(k=>`<button class="chip ${k===fa?'on':''}" onclick="fa='${k}';render()">${k==='All'?'':AREAS[k]+' '}${k}</button>`).join('')}</div>${open.map(taskRow).join('')||empty('🎉','All clear. Enjoy the free time!')}</div>
+ ${dn.length?`<div class="card"><h2>Completed (${dn.length})</h2>${dn.map(taskRow).join('')}<div class="row" style="margin:12px 0 0"><button class="btn" onclick="clearDone()">Clear completed</button></div></div>`:''}`}
+function addTask(){const t=val('tt');if(!t){alert('Please enter a task title.');return}
+ S.tasks.push({id:uid(),title:t,pri:$('#tp').value,a:$('#ta').value,due:val('td'),done:false});save();render()}
+function clearDone(){S.tasks=S.tasks.filter(t=>!t.done);save();render()}
+
+function vHealth(){const h=H(day),n=Math.max(S.goals.water,h.water);
+ return healthExtra()+`<div class="card"><h2>💧 Water</h2><div class="drops">${Array.from({length:n},(_,i)=>`<button class="drop ${i<h.water?'on':''}" onclick="setW(${i+1===h.water?i:i+1})" aria-label="${i+1} glasses">💧</button>`).join('')}</div>
+ <div class="big">${h.water} <span class="mute" style="font-size:1rem;font-weight:600">of ${S.goals.water} glasses</span></div>
+ <label>Daily goal (glasses)</label><input type="number" inputmode="numeric" min="1" value="${S.goals.water}" onchange="goal('water',this.value)"></div>
+ <div class="card"><h2>😴 Sleep</h2><label style="margin-top:0">Hours slept last night</label><input type="number" inputmode="decimal" step="0.5" min="0" max="24" value="${esc(h.sleep)}" placeholder="e.g. 7.5" onchange="setH('sleep',this.value)"></div>
+ <div class="card"><h2>🏃 Exercise</h2><label style="margin-top:0">Minutes today</label><input type="number" inputmode="numeric" min="0" value="${esc(h.ex)}" placeholder="e.g. 30" onchange="setH('ex',this.value)"></div>`}
+function setH(k,v){S.health[day]=Object.assign({},H(day),{[k]:v});save()}
+function setW(n){S.health[day]=Object.assign({},H(day),{water:n});save();render()}
+function goal(k,v){const n=parseInt(v);if(n>0){S.goals[k]=n;save();render()}}
+
+const ico={Breakfast:'🍳',Lunch:'🍛',Dinner:'🍽️',Snack:'🍎'};
+function vDiet(){const ms=S.meals.filter(m=>m.date===day),t=kcalOf(day),left=S.goals.kcal-t;
+ return `<div class="card"><h2>🔥 Calories</h2><div class="bk"><div class="big">${t}</div><div class="mute" style="text-align:right">of ${S.goals.kcal} kcal<br><b style="color:var(--ink)">${left>=0?left+' left':(-left)+' over'}</b></div></div><div class="bar"><i style="width:${Math.min(100,t/S.goals.kcal*100)}%"></i></div></div>
+ <div class="card"><h2>🍴 Log a meal</h2><div class="row"><select id="mt"><option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Snack</option></select><input type="number" inputmode="numeric" id="mk" min="0" placeholder="kcal"></div>
+ <div class="row"><input id="mn" placeholder="What did you eat?"></div><div class="row"><button class="btn go" onclick="addMeal()">Add meal</button></div>
+ ${ms.map(m=>`<div class="item meal"><div style="font-size:1.6rem">${ico[m.type]||'🍽️'}</div><div class="grow"><b>${esc(m.name)}</b><div class="mute">${m.type} · ${m.kcal} kcal</div></div><button class="x" onclick="del('meals','${m.id}')" aria-label="Delete">✕</button></div>`).join('')||empty('🥗','No meals logged for this day.')}</div>
+ <div class="card"><h2>🎯 Daily calorie goal</h2><input type="number" inputmode="numeric" min="500" value="${S.goals.kcal}" onchange="goal('kcal',this.value)"></div>`}
+function addMeal(){const n=val('mn');if(!n){alert('Please enter what you ate.');return}
+ S.meals.push({id:uid(),date:day,type:$('#mt').value,name:n,kcal:parseInt(val('mk'))||0});save();render()}
+
+const AREAS={Uni:'🎓',Tuition:'📖',Voxel:'💼',Reading:'📚',Learn:'🧠',Markets:'📈',Health:'💪',Personal:'🏡',Business:'🏢'},ai=a=>AREAS[a]?AREAS[a]+' ':'',aopt=(id,sel)=>`<select id="${id}">${Object.keys(AREAS).map(k=>`<option ${k===sel?'selected':''}>${k}</option>`).join('')}</select>`;
+let fa='All';
+function bkBanner(){const n=S.tasks.length+S.blocks.length+S.meals.length+S.classes.length+S.deadlines.length;
+ if(!n||(S.lastBackup&&Date.now()-S.lastBackup<6048e5))return'';
+ return `<div class="card"><h2>💾 Time for your weekly backup</h2><p class="mute" style="margin:0 0 10px">${S.lastBackup?'Your last backup was '+Math.floor((Date.now()-S.lastBackup)/864e5)+' days ago.':'You have not saved a backup yet.'}</p><div class="row"><button class="btn go" onclick="exp()">Save backup now</button></div></div>`}
+function cal(){
+ const E=s=>String(s).replace(/[\\,;]/g,m=>'\\'+m).replace(/\n/g,'\\n');
+ const T=d=>d.replace(/-/g,''),Hm=t=>t.replace(':','')+'00',L=[],st=new Date().toISOString().replace(/[-:]/g,'').slice(0,15)+'Z';
+ const ev=(id,sum,a,b,rr,al,desc)=>L.push('BEGIN:VEVENT','UID:'+id+'@planner','DTSTAMP:'+st,'DTSTART:'+a,b&&b>a?'DTEND:'+b:'DURATION:PT30M',...(rr?['RRULE:'+rr]:[]),'SUMMARY:'+E(sum),...(desc?['DESCRIPTION:'+E(desc)]:[]),...al.flatMap(x=>['BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+E(sum),'TRIGGER:'+x,'END:VALARM']),'END:VEVENT');
+ const today=iso(new Date()),nx=w=>{const d=new Date();while(d.getDay()!==w)d.setDate(d.getDate()+1);return T(iso(d))},BD=['SU','MO','TU','WE','TH','FR','SA'];
+ S.classes.forEach(c=>ev(c.id,(c.a?c.a+': ':'')+c.course+(c.venue?' ('+c.venue+')':''),nx(c.dow)+'T'+Hm(c.start),nx(c.dow)+'T'+Hm(c.end),'FREQ=WEEKLY;BYDAY='+BD[c.dow]+(c.until?';UNTIL='+T(c.until)+'T235959':''),['-PT15M']));
+ S.deadlines.filter(x=>!x.done).forEach(x=>ev(x.id,'DEADLINE: '+x.title+(x.course?' ('+x.course+')':''),T(x.due)+'T'+Hm(x.time||'09:00'),0,0,['-P1D','-PT2H']));
+ S.tasks.filter(t=>!t.done&&t.due).forEach(t=>ev(t.id,'Task: '+t.title,T(t.due)+'T'+Hm('09:00'),0,0,['PT0S']));
+ S.blocks.filter(b=>!b.done&&b.date>=today).forEach(b=>ev(b.id,(b.a?b.a+': ':'')+b.title,T(b.date)+'T'+Hm(b.start),T(b.date)+'T'+Hm(b.end),0,['-PT10M']));
+ ev('weekly-backup','Back up my Planner and refresh reminders',nx(0)+'T200000',0,'FREQ=WEEKLY;BYDAY=SU',['PT0S'],'Open Planner, Today tab: Save backup, then Add reminders to phone calendar.');
+ const dayItems=ds=>{const w=new Date(ds+'T00:00').getDay();return{cl:S.classes.filter(c=>c.dow===w&&(!c.until||ds<=c.until)).sort(byStart),bl:S.blocks.filter(b=>b.date===ds&&!b.done).sort(byStart),tk:S.tasks.filter(t=>!t.done&&t.due===ds),dl:S.deadlines.filter(x=>!x.done&&x.due===ds)}};
+ const pl=(n,w)=>n+' '+w+(n>1?(w==='class'?'es':'s'):'');
+ for(let i=0;i<14;i++){const d=new Date();d.setDate(d.getDate()+i);const tm=new Date(d);tm.setDate(tm.getDate()+1);
+  const ds=iso(d),it=dayItems(iso(tm)),n=it.cl.length+it.bl.length+it.tk.length+it.dl.length,nm=tm.toLocaleDateString('en-GB',{weekday:'long'});
+  const parts=[it.cl.length&&pl(it.cl.length,'class'),it.bl.length&&pl(it.bl.length,'time block'),it.tk.length&&pl(it.tk.length,'task'),it.dl.length&&pl(it.dl.length,'deadline')].filter(Boolean);
+  const first=[...it.cl,...it.bl].sort(byStart)[0];
+  const sum=n?'Tomorrow ('+nm+'): '+parts.join(', ')+(first?'. First at '+first.start:''):'Plan tomorrow ('+nm+'): nothing scheduled yet';
+  const desc=n?[...it.cl.map(c=>c.start+'-'+c.end+' '+c.course+(c.venue?' ('+c.venue+')':'')),...it.bl.map(b=>b.start+'-'+b.end+' '+b.title),...it.tk.map(t=>'Task: '+t.title),...it.dl.map(x=>'DEADLINE: '+x.title)].join('\n'):'Open Planner and plan your day.';
+  ev('night-'+T(ds),sum,T(ds)+'T220000',0,0,['PT0S'],desc)}
+ const f=new Date();f.setDate(f.getDate()+14);ev('night-daily','Plan tomorrow: open Planner',T(iso(f))+'T220000',0,'FREQ=DAILY',['PT0S'],'Check tomorrow and plan your day. Refresh reminders from the Today tab each week.');
+ const txt=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//My Planner//EN',...L,'END:VCALENDAR'].join('\r\n');
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/calendar'}));a.download='planner-reminders.ics';a.click()}
+const TT=[
+[2,'08:30','10:30','QS2100 Building Information Modelling (PW)','4A/5A'],
+[2,'11:00','13:00','QS2100 Building Information Modelling (PW)','4A/BIM/1D'],
+[2,'14:00','15:30','QS2130 Organisational Management (L)','5A'],
+[2,'16:00','17:00','QS2080 Services III (PW)','BIM/1D/3D'],
+[3,'08:30','10:00','QS2110 Project Planning and Management (L)','Audi'],
+[3,'13:00','14:30','QS2120 Construction Costing (L)','5A'],
+[3,'15:00','16:30','QS2080 Services III (L)','5A'],
+[4,'08:30','09:30','QS2110 Project Planning and Management (PW)','2D/3D/BIM'],
+[4,'10:00','11:00','QS2160 Business Statistics and Operational Research (PW)','2D'],
+[4,'13:00','14:30','QS2160 Business Statistics and Operational Research (L)','5A'],
+[4,'15:00','16:30','QS2090 Law of Property (L)','5A'],
+[5,'08:30','10:30','QS2150 Project Study II (L/PW)','Audi/3D/BIM'],
+[5,'11:00','12:00','QS2130 Organisational Management (PW)','Audi/3D/2D'],
+[5,'13:30','14:30','QS2120 Construction Costing (PW)','1D/3D/BIM'],
+[6,'08:30','10:30','QS2090 Law of Property (PW)','5A/1D/BIM'],
+[6,'11:00','12:00','QS2140 Civil Engineering Construction I (PW)','1D/4A'],
+[6,'13:00','14:30','QS2140 Civil Engineering Construction I (L)','Audi'],
+[6,'15:00','16:30','Guest Lectures and Seminars','5A']];
+const KEYDATES=[['Semester II contact weeks end','2026-11-21'],['Course work viva / attendance viva','2026-11-24'],['Semester II exams begin','2026-12-08'],['Semester II exams end','2026-12-19']];
+function seed(){TT.forEach((r,i)=>S.classes.push({id:uid()+i,course:r[3],a:'Uni',dow:r[0],start:r[1],end:r[2],venue:r[4],until:'2026-12-19'}));
+ S.seeded=true;save();render()}
+const datesCard=()=>`<div class="card"><h2>🗓️ Semester II dates</h2>${KEYDATES.map(k=>{const n=Math.round((new Date(k[1]+'T00:00')-new Date(iso(new Date())+'T00:00'))/864e5);return `<div class="item blk"><div class="grow"><b>${esc(k[0])}</b><div class="mute">${esc(k[1])} · ${n<0?'Passed':n===0?'Today':'In '+n+' days'}</div></div></div>`}).join('')}</div>`;
+const seedCard=()=>S.seeded?'':`<div class="card"><h2>📚 Load my timetable</h2><p class="mute" style="margin:0 0 10px">Level 2 · Semester II classes (Tuesday to Saturday). Parallel sessions are all added, so delete the ones that are not for your group.</p><div class="row"><button class="btn go" onclick="seed()">Load timetable</button></div></div>`;
+const mins=t=>{const p=t.split(':');return +p[0]*60+ +p[1]};
+const code=c=>{const m=c.course.match(/QS(\d+)/);return m?m[1]:c.course.slice(0,5)};
+const kind=c=>/\(PW\)/.test(c.course)?'PW':/\(L\)/.test(c.course)?'L':/L\/PW/.test(c.course)?'L/PW':'';
+const hue=c=>{let h=0;for(const ch of code(c))h=(h*31+ch.charCodeAt(0))%360;return h};
+let sel=null;
+const detail=()=>{const c=S.classes.find(x=>x.id===sel);return c?`<div class="item blk" style="margin-top:10px"><div class="grow"><div class="when">${DN[c.dow]} · ${esc(c.start)} – ${esc(c.end)}</div><b>${ai(c.a)}${esc(c.course)}</b>${c.venue?`<div class="mute">Venue: ${esc(c.venue)}</div>`:''}</div><button class="x" onclick="if(confirm('Delete this class?')){sel=null;del('classes','${c.id}')}" aria-label="Delete class">🗑️</button><button class="x" onclick="sel=null;render()" aria-label="Close">✕</button></div>`:''};
+function vTT(){
+ const cs=S.classes,PX=46,lo=Math.floor(Math.min(...cs.map(c=>mins(c.start)))/60),hi=Math.ceil(Math.max(...cs.map(c=>mins(c.end)))/60),tw=new Date().getDay();
+ const days=ORD.filter(d=>cs.some(c=>c.dow===d));
+ const cols=days.map(d=>{const L=cs.filter(c=>c.dow===d).sort(byStart),out=[];let cl=[],ce=0;
+  const flush=()=>{const ln=[];cl.forEach(w=>{let i=ln.findIndex(e=>e<=mins(w.c.start));if(i<0){i=ln.length;ln.push(0)}ln[i]=mins(w.c.end);w.l=i});cl.forEach(w=>w.n=ln.length);out.push(...cl);cl=[]};
+  L.forEach(c=>{if(cl.length&&mins(c.start)>=ce)flush();if(!cl.length)ce=0;cl.push({c,l:0,n:1});ce=Math.max(ce,mins(c.end))});flush();
+  return{d,out,n:Math.max(...out.map(w=>w.n))}});
+ const H=(hi-lo)*PX;
+ return `<div class="ttg" style="grid-template-columns:36px ${cols.map(c=>c.n+'fr').join(' ')}"><div></div>${cols.map(c=>`<div class="dh ${c.d===tw?'today':''}">${DN[c.d].slice(0,3)}</div>`).join('')}
+ <div class="gut" style="height:${H}px">${Array.from({length:hi-lo},(_,i)=>`<span style="top:${i*PX+2}px">${(lo+i+11)%12+1}${lo+i<12?'am':'pm'}</span>`).join('')}</div>
+ ${cols.map(c=>`<div class="dc" style="height:${H}px;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent ${PX-1}px,var(--line) ${PX-1}px,var(--line) ${PX}px)">${c.out.map(w=>{const k=w.c,top=(mins(k.start)-lo*60)/60*PX,h=Math.max(26,(mins(k.end)-mins(k.start))/60*PX-2);return `<button class="tb ${k.id===sel?'sel':''}" style="--h:${hue(k)};top:${top}px;height:${h}px;left:calc(${w.l/w.n*100}% + 1px);width:calc(${100/w.n}% - 2px)" onclick="sel='${k.id}';render()" aria-label="${esc(k.course)}"><b>${esc(code(k))}</b><span>${kind(k)}</span></button>`}).join('')}</div>`).join('')}</div>
+ ${detail()}<p class="mute" style="margin:8px 0 0">L = lecture, PW = practical. Tap a class for details.</p>`}
+let tdow=null;
+const curDay=()=>{if(tdow!==null&&S.classes.some(c=>c.dow===tdow))return tdow;const t=new Date().getDay();for(let i=0;i<7;i++){const d=(t+i)%7;if(S.classes.some(c=>c.dow===d))return d}return 1};
+function vDay(){
+ const cur=curDay(),t=new Date().getDay(),days=ORD.filter(d=>S.classes.some(c=>c.dow===d)),L=S.classes.filter(c=>c.dow===cur).sort(byStart);
+ return `<div class="chips">${days.map(d=>`<button class="chip ${d===cur?'on':''}" onclick="tdow=${d};render()">${DN[d].slice(0,3)}${d===t?' •':''}</button>`).join('')}</div>
+ ${L.map(c=>{const m=c.course.match(/^(QS\d+)\s+(.*?)\s*(?:\((L\/PW|L|PW)\))?$/),nm=m?m[2]:c.course,meta=[m?m[1]:'',m&&m[3]?(m[3]==='L'?'Lecture':m[3]==='PW'?'Practical':'Lecture / Practical'):'',c.venue?'Room '+c.venue:''].filter(Boolean).join(' · '),par=L.some(o=>o!==c&&mins(o.start)<mins(c.end)&&mins(o.end)>mins(c.start));
+ return `<div class="cls" style="--h:${hue(c)}"><div class="ct"><b>${esc(c.start)}</b><span>${esc(c.end)}</span></div><div class="cb"><b>${ai(c.a)}${esc(nm)}</b><div class="mute">${esc(meta)}</div>${par?'<div class="par">Same time as another session</div>':''}</div><button class="x" onclick="if(confirm('Delete this class?')){del('classes','${c.id}')}" aria-label="Delete class">🗑️</button></div>`}).join('')}`}
+const ttCard=()=>`<div class="card"><h2>🗓️ Timetable</h2>${S.classes.length?vDay():empty('🗓️','Your timetable is empty.<br>Load it above or add a class below.')}</div>`;
+const FB=[['fr','🍎','Fruit',2,'servings'],['vg','🥦','Vegetables',3,'servings'],['nt','🥜','Nuts',1,'handfuls']];
+function cnt(k,n){const h=Object.assign({},H(day));h[k]=Math.max(0,(h[k]||0)+n);if(k==='sg'&&n>0)h.sf=false;S.health[day]=h;save();render()}
+function togSF(){const h=Object.assign({},H(day));if((h.sg||0)>0){alert('You logged a sugary item today, so this is not a sugar-free day.');return}h.sf=!h.sf;S.health[day]=h;save();render()}
+function streak(){let n=0;const d=new Date();if(!H(iso(d)).sf)d.setDate(d.getDate()-1);while(H(iso(d)).sf){n++;d.setDate(d.getDate()-1)}return n}
+const wts=()=>Object.keys(S.health).filter(d=>parseFloat(S.health[d].wt)>0).sort().map(d=>[d,parseFloat(S.health[d].wt)]);
+const fbCard=()=>{const h=H(day);return `<div class="card"><h2>🥗 Food balance today</h2><p class="mute" style="margin:0 0 10px">Fruit ${h.fr||0}/2 · Veg ${h.vg||0}/3 · Nuts ${h.nt||0}/1 · Sugary items ${h.sg||0}</p><div class="row"><button class="btn" onclick="go('health')">Update in Health</button></div></div>`};
+function healthExtra(){
+ const h=H(day),w=wts(),a=w[0],z=w[w.length-1],tg=S.goals.tw||0;let prog='',note='';
+ if(a&&z){const lost=a[1]-z[1];prog=`<div class="mute">Started ${a[1].toFixed(1)} kg · now ${z[1].toFixed(1)} kg${lost>0?' · down '+lost.toFixed(1)+' kg':''}</div>`;
+  if(tg&&a[1]>tg){const p=Math.max(0,Math.min(1,lost/(a[1]-tg)));prog+=`<div class="bar"><i style="width:${p*100}%"></i></div><div class="mute">${Math.max(0,z[1]-tg).toFixed(1)} kg to go to reach ${tg} kg</div>`}
+  const days=(new Date(z[0]+'T00:00')-new Date(a[0]+'T00:00'))/864e5;
+  if(days>=7&&lost/days*7>1)note=`<p class="mute" style="color:var(--med)">You are losing about ${(lost/days*7).toFixed(1)} kg a week. That is faster than the usual safe pace, so consider talking to a doctor or dietitian.</p>`}
+ const hist=w.slice(-5).reverse().map(x=>`<div class="mute">${x[0]} · ${x[1].toFixed(1)} kg</div>`).join('');
+ const rows=FB.map(f=>`<div class="item" style="border-left-color:var(--low)"><div style="font-size:1.6rem">${f[1]}</div><div class="grow"><b>${f[2]}</b><div class="mute">${h[f[0]]||0} of ${f[3]} ${f[4]}</div></div><button class="btn" onclick="cnt('${f[0]}',-1)" aria-label="Less ${f[2]}">−</button><button class="btn go" onclick="cnt('${f[0]}',1)" aria-label="More ${f[2]}">+</button></div>`).join('');
+ return `<div class="card"><h2>⚖️ Weight</h2><div class="row"><div><label style="margin-top:0">Today (kg)</label><input type="number" inputmode="decimal" step="0.1" value="${esc(h.wt||'')}" placeholder="e.g. 78.5" onchange="setH('wt',this.value);render()"></div><div><label style="margin-top:0">Target (kg)</label><input type="number" inputmode="decimal" step="0.1" value="${tg||''}" placeholder="e.g. 70" onchange="S.goals.tw=parseFloat(this.value)||0;save();render()"></div></div>${prog}${note}${hist}<p class="mute" style="margin:8px 0 0">A steady pace is about 0.5–1 kg a week.</p></div>
+ <div class="card"><h2>🥗 Food balance</h2><p class="mute" style="margin:0 0 4px">Aim for about 5 portions of fruit and vegetables a day, plus a small handful of nuts.</p>${rows}</div>
+ <div class="card"><h2>🍬 Cut sugar</h2><p class="mute" style="margin:0 0 4px">Count sweets, sugary drinks and sugar in tea.</p><div class="item" style="border-left-color:var(--hi)"><div class="grow"><b>Sugary items today</b><div class="mute">${h.sg||0} so far</div></div><button class="btn" onclick="cnt('sg',-1)" aria-label="Less">−</button><button class="btn go" onclick="cnt('sg',1)" aria-label="More">+</button></div><div class="row" style="margin-top:10px"><button class="btn ${h.sf?'go':''}" onclick="togSF()">${h.sf?'✅ Sugar-free day':'Mark today sugar-free'}</button></div><div class="big">${streak()}<span class="mute" style="font-size:1rem;font-weight:600"> day streak</span></div></div>`}
+const DN=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],ORD=[1,2,3,4,5,6,0];
+const left=d=>{const n=Math.round((new Date(d+'T00:00')-new Date(iso(new Date())+'T00:00'))/864e5);return n<0?[(-n)+(n===-1?' day':' days')+' overdue','High']:n===0?['Due today','High']:n===1?['Due tomorrow','Medium']:['In '+n+' days',n<=3?'Medium':'Low']};
+const dlRow=x=>{const [t,p]=left(x.due);return `<div class="item ${x.done?'':p} ${x.done?'done':''}"><input type="checkbox" ${x.done?'checked':''} onchange="tog('deadlines','${x.id}')" aria-label="Mark done"><div class="grow"><b>${ai(x.a)}${esc(x.title)}</b><div class="mute">${x.course?esc(x.course)+' · ':''}${x.done?'Done':t} · ${esc(x.due)}${x.time?' '+esc(x.time):''}</div></div><button class="x" onclick="del('deadlines','${x.id}')" aria-label="Delete">✕</button></div>`};
+const clRow=(c,d)=>`<div class="item blk"><div class="grow"><div class="when">${esc(c.start)} – ${esc(c.end)}</div><b>${ai(c.a)}${esc(c.course)}</b>${c.venue?`<div class="mute">${esc(c.venue)}</div>`:''}</div>${d?`<button class="x" onclick="del('classes','${c.id}')" aria-label="Delete">✕</button>`:''}</div>`;
+const byStart=(a,b)=>a.start.localeCompare(b.start);
+function uniToday(){const cl=S.classes.filter(c=>c.dow===new Date(day+'T00:00').getDay()&&!c.ind&&(!c.until||day<=c.until)).sort(byStart),l=new Date();l.setDate(l.getDate()+7);
+ const dl=S.deadlines.filter(x=>!x.done&&x.due<=iso(l)).sort((a,b)=>a.due.localeCompare(b.due));
+ return (cl.length?`<div class="card"><h2>📚 Classes today</h2>${cl.map(c=>clRow(c)).join('')}</div>`:'')+(dl.length?`<div class="card"><h2>⏰ Deadlines this week</h2>${dl.map(dlRow).join('')}</div>`:'')}
+function vUni(){
+ const dl=S.deadlines.slice().sort((a,b)=>a.done-b.done||a.due.localeCompare(b.due));
+ const wk=ORD.map(d=>{const cs=S.classes.filter(c=>c.dow===d).sort(byStart);return cs.length?`<label>${DN[d]}</label>${cs.map(c=>clRow(c,1)).join('')}`:''}).join('');
+ return seedCard()+ttCard()+`<div class="card"><h2>⏰ New deadline</h2><div class="row"><input id="dt" placeholder="Assignment or exam"></div>
+ <div class="row"><input id="dc" placeholder="Course or client (optional)"></div>
+ <div class="row">${aopt('da')}</div>
+ <div class="row"><div><label style="margin-top:0">Due date</label><input type="date" id="dd"></div><div><label style="margin-top:0">Time</label><input type="time" id="dh"></div></div>
+ <div class="row"><button class="btn go" onclick="addDl()">Add deadline</button></div></div>
+ <div class="card"><h2>Deadlines (${dl.filter(x=>!x.done).length} open)</h2>${dl.map(dlRow).join('')||empty('📚','No deadlines yet.<br>Add your first one above.')}</div>
+ <div class="card"><h2>📚 Add a class</h2><div class="row"><input id="cc" placeholder="Class name (lecture, tuition…)"></div>
+ <div class="row">${aopt('ca')}</div>
+ <div class="row"><select id="cd">${ORD.map(d=>`<option value="${d}">${DN[d]}</option>`).join('')}</select></div>
+ <div class="row"><div><label style="margin-top:0">From</label><input type="time" id="cs"></div><div><label style="margin-top:0">To</label><input type="time" id="ce"></div></div>
+ <div class="row"><input id="cv" placeholder="Venue (optional)"></div>
+ <div class="row"><button class="btn go" onclick="addClass()">Add to timetable</button></div></div>
+ `+datesCard()}
+function addClass(){const c=val('cc'),t=val('cs');if(!c||!t){alert('Please enter the course and a start time.');return}
+ S.classes.push({id:uid(),course:c,a:$('#ca').value,dow:+$('#cd').value,start:t,end:val('ce')||t,venue:val('cv')});save();render()}
+function addDl(){const t=val('dt'),d=val('dd');if(!t||!d){alert('Please enter a title and a due date.');return}
+ S.deadlines.push({id:uid(),title:t,course:val('dc'),a:$('#da').value,due:d,time:val('dh'),done:false});save();render()}
+
+function render(){$('#day').value=day;$('#hero').innerHTML=hero();$('#main').innerHTML={today:vToday,tasks:vTasks,health:vHealth,diet:vDiet,uni:vUni,more:vMore}[tab]();
+ document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab))}
+if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0)navigator.serviceWorker.register('sw.js').catch(()=>{});
+render();
+</script><script>const card=(h,b)=>`<div class="card"><h2>${h}</h2>${b}</div>`,hm=m=>String(m/60|0).padStart(2,'0')+':'+String(m%60).padStart(2,'0'),TA=(id,r,p,v)=>`<textarea id="${id}" rows="${r}" placeholder="${p}" style="width:100%;background:var(--field);border:0;border-radius:14px;padding:12px;margin-bottom:10px">${esc(v||'')}</textarea>`;
+document.head.insertAdjacentHTML('beforeend','<style>.si{font-family:"Noto Sans Sinhala","Iskoola Pota","Nirmala UI","Sinhala MN",system-ui;line-height:1.95}textarea{font:inherit;color:var(--ink)}.qo{display:block;width:100%;text-align:left;margin-top:6px}.ok{background:var(--low)!important;color:#fff}.no{background:var(--hi)!important;color:#fff}</style>');
+let sub='plan',cid=null,li=null,ne=null,nq='',FS=[];
+function ensure(){Object.entries({notes:[],books:[],marks:[],courses:[],wl:[],prog:{},ln:{},chk:{},qa:{},sl:{},tgt:{Uni:25,Tuition:8,Voxel:10,Reading:3,Learn:5,Markets:2,Health:4}}).forEach(([k,v])=>{if(!S[k])S[k]=v})}
+const _r=render;render=function(){ensure();_r()};
+const mon=()=>{const d=new Date(day+'T00:00');d.setDate(d.getDate()-(d.getDay()+6)%7);return iso(d)};
+function ck(k,i){const c=S.chk[k]=S.chk[k]||[];c[i]=!c[i];save();render()}
+const chkCard=(t,k,it,dy)=>{const kk=k+(dy==1?day:dy==2?mon():'');const c=S.chk[kk]||[];return card(t,it.map((x,i)=>`<div class="item ${c[i]?'done':''}"><input type="checkbox" ${c[i]?'checked':''} onchange="ck('${kk}',${i})"><div class="grow">${esc(x)}</div></div>`).join(''))};
+// ---- More hub
+function vMore(){const T=[['plan','🗺️ Plan'],['bal','⚖️ Balance'],['grow','🚀 Grow'],['read','📖 Read'],['mkt','📈 Markets'],['learn','🎓 Learn'],['note','📝 Notes'],['goal','🎯 Goal'],['rev','🔁 Review'],['ind','🧑‍🏫 My classes'],['ecl','📬 eClass'],['self','🌱 Self']];
+return `<div class="chips">${T.map(t=>`<button class="chip ${t[0]===sub?'on':''}" onclick="sub='${t[0]}';cid=null;li=null;render()">${t[1]}</button>`).join('')}</div>`+({plan:vPlan,bal:vBal,grow:vGrow,read:vRead,mkt:vMkt,learn:vLearn,note:vNote,goal:vGoal,rev:vRev,ind:vInd,ecl:vEcl,self:vSelf}[sub])()}
+// ---- Time balance
+function wkH(){const m=new Date(mon()+'T00:00'),o={};for(let i=0;i<7;i++){const x=new Date(m);x.setDate(m.getDate()+i);const ds=iso(x),f=(a,h)=>o[a]=(o[a]||0)+h;
+S.blocks.filter(b=>b.date===ds).forEach(b=>f(b.a,(mins(b.end)-mins(b.start))/60));S.classes.filter(c=>c.dow===x.getDay()&&(!c.until||ds<=c.until)).forEach(c=>f(c.a,(mins(c.end)-mins(c.start))/60))}return o}
+function free(){const w=new Date(day+'T00:00').getDay(),bz=[...S.classes.filter(c=>c.dow===w&&(!c.until||day<=c.until)),...S.blocks.filter(b=>b.date===day)].map(x=>[mins(x.start),mins(x.end)]).sort((a,b)=>a[0]-b[0]);let t=360,o=[];bz.forEach(b=>{if(b[0]-t>=45)o.push([t,b[0]]);t=Math.max(t,b[1])});if(1320-t>=45)o.push([t,1320]);return o}
+function vBal(){const w=wkH(),A=Object.keys(S.tgt);FS=free();
+return card('⚖️ This week: planned vs target (hours)',A.map(a=>{const v=w[a]||0,t=S.tgt[a];return `<div class="mute">${AREAS[a]} ${a}: <b>${v.toFixed(1)}</b> / <input type="number" value="${t}" style="width:70px;padding:4px 8px" onchange="S.tgt['${a}']=+this.value||1;save();render()"> h</div><div class="bar"><i style="width:${Math.min(100,v/t*100)}%"></i></div>`}).join('')+'<p class="mute">Parallel timetable sessions all count, so delete the ones not for your group.</p>')
++card('🕒 Free time on this day',FS.map((f,i)=>`<div class="item blk"><div class="grow"><div class="when">${hm(f[0])} – ${hm(f[1])}</div></div><select id="fs${i}" style="width:110px">${A.map(a=>`<option>${a}</option>`).join('')}</select><button class="btn go" onclick="qb(${i})">Add</button></div>`).join('')||empty('✅','No free slot of 45+ min.'))}
+function qb(i){const f=FS[i],a=$('#fs'+i).value;S.blocks.push({id:uid(),date:day,start:hm(f[0]),end:hm(Math.min(f[1],f[0]+90)),title:a+' focus',a,done:false});save();render()}
+// ---- Health
+const HAB=['Morning walk 20 min','Stretch 10 min','Sunlight 15 min','Meditate 5 min','No phone 30 min before bed'],WO=['Mon · Strength 30 min','Tue · Cardio 30 min','Wed · Strength 30 min','Thu · Cardio 30 min','Fri · Strength 30 min','Sat · Long walk or sport','Sun · Rest and stretch'];
+function healthMore(){const h=H(day),ds=[...Array(7)].map((_,i)=>{const d=new Date(day+'T00:00');d.setDate(d.getDate()-6+i);return H(iso(d))}),sl=ds.filter(x=>+x.sleep>0),av=sl.length?sl.reduce((s,x)=>s+ +x.sleep,0)/sl.length:0;
+return card('🙂 Mood, energy, sleep times',['Mood','Energy'].map((n,j)=>{const k=j?'en':'md';return `<label>${n} (1–5)</label><div class="chips">${[1,2,3,4,5].map(v=>`<button class="chip ${h[k]===v?'on':''}" onclick="setH('${k}',${v});render()">${v}</button>`).join('')}</div>`}).join('')+`<div class="row"><div><label>Bed time</label><input type="time" value="${h.bed||''}" onchange="setH('bed',this.value)"></div><div><label>Wake time</label><input type="time" value="${h.wk||''}" onchange="setH('wk',this.value)"></div></div>`)
++chkCard('✅ Daily habits','hb',HAB,1)+chkCard('🏋️ Workout plan (resets weekly)','wo',WO,2)
++card('📊 Last 7 days',`<div class="big">${av.toFixed(1)} h</div><div class="mute" style="text-align:center">average sleep · ${ds.reduce((s,x)=>s+(+x.ex||0),0)} min exercise · ${ds.reduce((s,x)=>s+(x.water||0),0)} glasses water</div>`)}
+const _vH=vHealth;vHealth=function(){return _vH()+healthMore()};
+// ---- Academic
+function vAcad(){const g={};S.marks.forEach(m=>{const x=g[m.c]=g[m.c]||{w:0,s:0};x.w+=m.w;x.s+=m.m*m.w/100});
+return card('🎯 Marks tracker',`<div class="row"><input id="mc" placeholder="Course (e.g. QS2100)"><input id="mti" placeholder="Assessment"></div><div class="row"><input id="mw" type="number" inputmode="decimal" placeholder="Weight %"><input id="mm" type="number" inputmode="decimal" placeholder="Mark %"></div><div class="row"><button class="btn go" onclick="addMark()">Add mark</button></div>`+Object.keys(g).map(c=>`<div class="item blk"><div class="grow"><b>${esc(c)}</b><div class="mute">${g[c].s.toFixed(1)} of ${g[c].w}% done · average ${g[c].w?(g[c].s/g[c].w*100).toFixed(0):0}%</div></div></div>`).join('')+S.marks.map(m=>`<div class="mute">${esc(m.c)} · ${esc(m.t)} · ${m.m}% × ${m.w}% <button class="x" onclick="del('marks','${m.id}')">✕</button></div>`).join(''))
++card('📅 Exam study plan',`<div class="row"><input id="sc" placeholder="Course to study"></div><div class="row"><div><label style="margin-top:0">Start</label><input type="time" id="ss" value="19:00"></div><div><label style="margin-top:0">Hours/day</label><select id="sh"><option>1</option><option selected>2</option><option>3</option></select></div><div><label style="margin-top:0">Days</label><input type="number" id="sd" value="7"></div></div><div class="row"><button class="btn go" onclick="mkPlan()">Create study blocks</button></div>`)}
+function addMark(){const c=val('mc'),m=parseFloat(val('mm')),w=parseFloat(val('mw'));if(!c||isNaN(m)||isNaN(w)){alert('Enter course, weight and mark.');return}S.marks.push({id:uid(),c,t:val('mti')||'Assessment',w,m});save();render()}
+function mkPlan(){const c=val('sc'),s=val('ss'),h=+$('#sh').value,n=+val('sd')||7;if(!c||!s){alert('Enter course and start time.');return}
+for(let i=0;i<n;i++){const d=new Date(day+'T00:00');d.setDate(d.getDate()+i);S.blocks.push({id:uid(),date:iso(d),start:s,end:hm(mins(s)+h*60),title:'Study: '+c,a:'Uni',done:false})}save();go('today')}
+const _vU=vUni;vUni=function(){return _vU()+vAcad()};
+// ---- Grow (MathLab + Voxel)
+function vGrow(){const k=Object.keys(S.sl).sort(),last=k.length?S.sl[k[k.length-1]]:0;
+return card('📖 MathLab · student count',`<div class="row"><input id="sn" type="number" inputmode="numeric" placeholder="Active students today"><button class="btn go" onclick="S.sl[iso(new Date())]=+val('sn');save();render()">Save</button></div><div class="mute">${k.length?'Latest: <b>'+last+'</b>'+(k.length>1?' (first '+S.sl[k[0]]+')':''):'Log it weekly to see growth.'}</div>`)
++chkCard('🚀 MathLab growth plan','ml',['1 · Offer: clear levels (O/L, A/L), price, schedule, one-page flyer','1 · Free trial class + WhatsApp parent group','2 · 3 short videos a week (tips, past-paper, tricks)','2 · 1 free live revision session a month','3 · Referral reward for students who bring a friend','3 · Run small Meta ads with Voxel skills','4 · Monthly progress report to parents','4 · Collect testimonials and results','4 · Sell recorded lessons or notes'],0)
++chkCard('💼 Voxel Digital · today','vx',['5 outreach messages','Post or schedule content','Client follow-up and reporting','20 min marketing learning'],1)}
+// ---- Reading
+function vRead(){return card('📖 Books',`<div class="row"><input id="bn" placeholder="Book title"><input id="bp" type="number" inputmode="numeric" placeholder="Pages"></div><div class="row"><button class="btn go" onclick="addBook()">Add book</button></div>`+S.books.map(b=>`<div class="item blk"><div class="grow"><b>${esc(b.t)}</b><div class="bar"><i style="width:${Math.min(100,b.r/b.p*100)}%"></i></div><div class="mute">Page <input type="number" value="${b.r}" style="width:80px;padding:4px 8px" onchange="rb('${b.id}',this.value)"> of ${b.p}</div></div><button class="x" onclick="del('books','${b.id}')">✕</button></div>`).join('')||empty('📚','Add a book to start.'))+'<p class="mute">Tip: Balance tab → add a Reading block (30 min a day).</p>'}
+function addBook(){const t=val('bn'),p=+val('bp');if(!t||!p){alert('Enter title and pages.');return}S.books.push({id:uid(),t,p,r:0});save();render()}
+function rb(id,v){S.books.find(b=>b.id===id).r=Math.max(0,+v||0);save();render()}
+// ---- Markets
+function vMkt(){return card('📈 Watchlist (manual)',`<div class="row"><input id="ws" placeholder="Symbol"><input id="wp" type="number" inputmode="decimal" placeholder="Price"></div><div class="row"><input id="wn" placeholder="Why watching?"></div><div class="row"><button class="btn go" onclick="addW()">Add</button><a class="btn" href="https://www.cse.lk/" target="_blank" rel="noopener" style="text-decoration:none;color:var(--ink)">Open CSE ↗</a></div>`+S.wl.map(w=>`<div class="item blk"><div class="grow"><b>${esc(w.s)}</b> · ${esc(w.p)}<div class="mute">${esc(w.n)} · ${esc(w.d)}</div></div><button class="x" onclick="del('wl','${w.id}')">✕</button></div>`).join(''))
++chkCard('📋 Market routine (weekly)','mk',['Read daily market summary (10 min, 3 days)','Review watchlist and update prices','Write 1 note: why buy or sell?','Study 1 lesson in Learn tab','Only invest money you will not need soon'],2)+'<p class="mute">Live prices need internet, so update prices by hand or open CSE above.</p>'}
+function addW(){const s=val('ws');if(!s){alert('Enter a symbol.');return}S.wl.push({id:uid(),s,p:val('wp'),n:val('wn'),d:iso(new Date())});save();render()}
+// ---- Notes
+function vNote(){const n=S.notes.find(x=>x.id===ne)||{},q=nq.toLowerCase(),L=S.notes.filter(x=>!q||(x.t+x.b).toLowerCase().includes(q)).sort((a,b)=>(b.pin||0)-(a.pin||0)||b.ts-a.ts);
+return card(ne?'✏️ Edit note':'📝 New note',`<div class="row"><input id="nt" placeholder="Title" value="${esc(n.t||'')}"></div><div class="row">${aopt('na',n.a)}</div>${TA('nb',5,'Write here…',n.b)}<div class="row"><button class="btn go" onclick="saveN()">Save</button>${ne?'<button class="btn" onclick="ne=null;render()">Cancel</button>':''}</div>`)
++card('Your notes',`<div class="row"><input placeholder="Search" value="${esc(nq)}" onchange="nq=this.value;render()"></div>`+L.map(x=>`<div class="item blk"><div class="grow" onclick="ne='${x.id}';render();scrollTo(0,0)"><b>${x.pin?'📌 ':''}${ai(x.a)}${esc(x.t||'Untitled')}</b><div class="mute si">${esc((x.b||'').slice(0,90))}</div></div><button class="x" onclick="pn('${x.id}')">📌</button><button class="x" onclick="del('notes','${x.id}')">✕</button></div>`).join('')||empty('📝','No notes yet.'))}
+function saveN(){const t=val('nt'),b=$('#nb').value.trim();if(!t&&!b)return;const o=S.notes.find(x=>x.id===ne);if(o)Object.assign(o,{t,b,a:$('#na').value,ts:Date.now()});else S.notes.push({id:uid(),t,b,a:$('#na').value,ts:Date.now()});ne=null;save();render()}
+function pn(id){const n=S.notes.find(x=>x.id===id);n.pin=!n.pin;save();render()}
+// ---- Learn (courses are data: paste JSON to add or update)
+const COURSES=[
+{id:'eng',title:'English Grammar',icon:'🔤',lessons:[
+{t:'Present Simple',b:'Present Simple කියන්නේ සාමාන්‍යයෙන් සිදුවන දේවල්, පුරුදු සහ ඇත්ත කරුණු කියන්න පාවිච්චි කරන tense එක.\nව්‍යුහය: Subject + verb. he/she/it වලට verb එකට s/es එකතු කරන්න.\nඋදා: I study maths every day. She studies at 6 a.m.\nNegative: do not / does not + verb. (does not පස්සේ verb එකේ s නැහැ)\nQuestion: Do/Does + subject + verb? උදා: Does she study?',q:[{q:'She ___ to school every day.',o:['go','goes','going'],a:1}]},
+{t:'Articles: a, an, the',b:'a / an පාවිච්චි කරන්නේ පළමු වතාවට කියන, එකක් පමණක් ඇති noun වලට.\na — consonant sound එකකින් පටන් ගන්න වචන (a book).\nan — vowel sound එකකින් පටන් ගන්න වචන (an apple, an hour).\nthe — දැනටමත් දන්න, විශේෂ දෙයක් (the sun, the book I bought).',q:[{q:'___ hour',o:['a','an','the'],a:1}]},
+{t:'Past Simple',b:'ඉවර වෙලා ගිය දේවල් කියන්න Past Simple පාවිච්චි කරනවා.\nRegular verb: verb + ed (walk → walked). Irregular verb: go → went, see → saw.\nNegative: did not + verb (base form). උදා: I did not go.\nQuestion: Did you go?',q:[{q:'I ___ to Kandy yesterday.',o:['go','went','goes'],a:1}]}]},
+{id:'mkt',title:'Marketing Basics',icon:'📣',lessons:[
+{t:'Marketing Funnel',b:'Awareness → Interest → Decision → Action.\nAwareness: මිනිස්සු ඔයාව දැනගන්න ඕන (Reels, videos).\nInterest: වටිනා content දීලා කැමති කරවන්න.\nDecision: reviews සහ proof වලින් විශ්වාසය හදන්න.\nAction: පැහැදිලි CTA එකක් දෙන්න.\nහැම content එකක්ම funnel එකේ කොටසකට සම්බන්ධ වෙන්න ඕන.'},
+{t:'Hook, Value, CTA',b:'හොඳ video එකක structure එක:\nHook — පළමු තත්පර 3 ඇතුළත අවධානය අල්ලන්න.\nValue — ප්‍රශ්නයට විසඳුම හෝ ප්‍රයෝජනවත් දෙයක් දෙන්න.\nCTA (Call To Action) — "DM කරන්න", "Follow කරන්න" වගේ ඊළඟ පියවර කියන්න.\nScript එක ලියනකොට මේ තුන මුලින්ම ලියන්න.',q:[{q:'Hook එකේ අරමුණ?',o:['අවධානය අල්ලන්න','Price කියන්න','Video අවසන් කරන්න'],a:0}]},
+{t:'Meta Ads Basics',b:'Meta Ads වල structure එක: Campaign → Ad Set → Ad.\nCampaign: Objective (Leads, Sales, Traffic).\nAd Set: Audience, Budget, Placement.\nAd: Creative + Copy.\nපොඩි budget එකකින් test කරලා CTR සහ CPL බලන්න. හොඳම ad එක scale කරන්න.'}]},
+{id:'voice',title:'Voice, Acting, Presenting',icon:'🎙️',lessons:[
+{t:'Breathing and Warm-up',b:'Diaphragm breathing: නාභිය ළඟින් හුස්ම ගන්න (count 4), තත්පර 4ක් රඳවාගෙන, count 6කින් හෙමින් පිටකරන්න. විනාඩි 5ක් කරන්න.\nඊළඟට lip trills සහ humming කරලා voice එක warm-up කරන්න.\nකතා කරන්න කලින් උණුසුම් වතුර බොන්න.'},
+{t:'Pace, Pause, Pitch',b:'Pace — කතා කරන වේගය පාලනය කරන්න.\nPause — වැදගත් වචනයට කලින් හෝ පස්සේ නතර වෙන්න.\nPitch — ස්වරය උස් පහත් කරන්න.\nDaily drill: පිටුවක් හයියෙන් කියවලා phone එකෙන් record කරලා අහන්න. Tongue twister එකක් හෙමින් පටන් ගෙන වේගවත් කරන්න.'},
+{t:'Acting Basics',b:'චරිතයක් හදනකොට: Objective (චරිතයට ඕන දේ), Obstacle (බාධාව), Emotion.\nපේළියක් emotions තුනකින් කියලා බලන්න (සතුට, කෝපය, දුක).\nකැඩපතක් ඉස්සරහා හෝ video record කරලා practice කරන්න.'}]},
+{id:'stk',title:'Share Market Basics',icon:'📈',lessons:[
+{t:'Stock, CSE, Dividend',b:'Stock කියන්නේ සමාගමක කොටසක අයිතිය.\nශ්‍රී ලංකාවේ ගනුදෙනු වෙන්නේ CSE (Colombo Stock Exchange) හරහා. ඒ සඳහා CDS account එකක් සහ broker කෙනෙක් ඕන.\nලාභ ලැබෙන ක්‍රම දෙකක්: Dividend (ලාභාංශ) සහ Capital Gain (මිල වැඩිවීම).'},
+{t:'Risk Rules',b:'ඕනෑම දෙයකට කලින් rules කිහිපයක්:\n1. ඉක්මනින් ඕන වෙන සල්ලි invest කරන්න එපා.\n2. එක company එකකට සියල්ල දාන්න එපා (Diversification).\n3. ඇයි ගත්තේ කියලා note එකක් ලියන්න.\n4. Tips වලට නොව, financial statements වලට විශ්වාස කරන්න.'}]}];
+const HIDE=['eng','mkt','voice','stk','mgt','qs2100','qs2130','qs2110','qs2120','qs2080','qs2090','qs2140','qs2150'],ALL=()=>{const m={};[...S.courses].forEach(c=>m[c.id]=c);return Object.values(m)};
+function vLearn(){const c=cid&&ALL().find(x=>x.id===cid);if(c)return vCourse(c);cid=null;
+return card('🎓 Courses',(ALL().length?'':empty('📚','No courses yet. Add one with the buttons below.'))+ALL().map(c=>{const n=c.lessons.filter((_,i)=>S.prog[c.id+':'+i]).length;return `<div class="item blk" onclick="cid='${c.id}';li=null;render()" style="cursor:pointer"><div style="font-size:1.6rem">${c.icon||'📘'}</div><div class="grow"><b>${esc(c.title)}</b><div class="mute">${n}/${c.lessons.length} lessons</div></div>${S.courses.some(x=>x.id===c.id)?`<button class="x" onclick="event.stopPropagation();S.courses=S.courses.filter(x=>x.id!=='${c.id}');save();render()">🗑️</button>`:''}</div>`}).join(''))
++card('➕ Add or update a course',`<p class="mute" style="margin:0 0 8px">Paste course code (JSON, one course or a list). Same id updates it.</p>${TA('ci',5,'{"id":"x","title":"..","icon":"📘","lessons":[{"t":"..","b":"..","q":[{"q":"..","o":["a","b"],"a":0}]}]}')}<div class="row"><button class="btn go" onclick="impC()">Import</button></div>`)}
+function vCourse(c){const back=`<div class="row"><button class="btn" onclick="${li===null?'cid=null':'li=null'};render()">‹ Back</button></div>`;
+if(li===null)return card(esc(c.title),back+c.lessons.map((l,i)=>`<div class="item blk ${S.prog[c.id+':'+i]?'done':''}" onclick="li=${i};render();scrollTo(0,0)" style="cursor:pointer"><div class="grow si"><b>${i+1}. ${esc(l.t)}</b></div>${S.prog[c.id+':'+i]?'✅':''}</div>`).join(''));
+const l=c.lessons[li],k=c.id+':'+li;
+return card(esc(l.t),back+`<div class="si">${String(l.b||'').split('\n').map(p=>`<p>${esc(p)}</p>`).join('')}</div>`+(l.p?`<div class="item blk si"><div class="grow">✍️ <b>Practice:</b> ${esc(l.p)}</div></div>`:'')+(l.q||[]).map((q,qi)=>{const a=S.qa[k+':'+qi];return `<div class="si"><b>${esc(q.q)}</b>${q.o.map((o,oi)=>`<button class="btn qo ${a===undefined?'':oi===q.a?'ok':oi===a?'no':''}" onclick="S.qa['${k}:${qi}']=${oi};save();render()">${esc(o)}</button>`).join('')}</div>`}).join('')+`<label>My notes for this lesson</label>${TA('ln',4,'Write your notes…',S.ln[k])}<div class="row"><button class="btn" onclick="S.ln['${k}']=$('#ln').value;save();render()">Save notes</button><button class="btn go" onclick="S.prog['${k}']=!S.prog['${k}'];save();render()">${S.prog[k]?'✅ Done':'Mark done'}</button></div>`)}
+function impC(){try{let d=JSON.parse($('#ci').value);d=[].concat(d);d.forEach(c=>{if(!c.id||!c.title||!Array.isArray(c.lessons))throw 0;c.id=String(c.id).replace(/\W/g,'');S.courses=S.courses.filter(x=>x.id!==c.id);S.courses.push(c)});save();render()}catch(e){alert('Course code is not valid. Needs id, title and lessons.')}}
+render();
+</script><script>COURSES.push(
+{id:'qs2100',title:'QS2100 Building Information Modelling',icon:'🏗️',lessons:[{t:'BIM Basics',b:'BIM කියන්නේ building එකක 3D model එකක් එක්ක ඒකේ information (material, cost, time) එකතු කරන ක්‍රමය.\n4D BIM = 3D + Time. 5D BIM = 3D + Time + Cost.\nModel එකෙන් quantities ගන්න පුළුවන් (quantity take-off) — QS කෙනෙකුට ලොකු ප්‍රයෝජනයක්.\nClash detection: services සහ structure එකිනෙක ගැටෙනවාද කියලා site එකට යන්න කලින් හොයාගන්න පුළුවන්.\nIFC කියන්නේ software අතර model share කරන open format එක.',q:[{q:'Clash detection වලින් හොයන්නේ?',o:['Elements අතර ගැටීම්','Price වෙනස','Colour'],a:0}]}]},
+{id:'qs2130',title:'QS2130 Organisational Management',icon:'🏢',lessons:[{t:'Management Basics',b:'Management functions හතර (POLC): Planning, Organising, Leading, Controlling.\nMaslow: Physiological → Safety → Social → Esteem → Self-actualisation.\nHerzberg: Hygiene factors (වැටුප, වැඩ කරන තත්ත්වය) අඩු වුණොත් අසතුටු වෙනවා; Motivators (credit, වගකීම, දියුණුව) තමයි ඇත්තටම උනන්දුව වැඩි කරන්නේ.\nStructure වර්ග: Functional, Project, Matrix.'}]},
+{id:'qs2110',title:'QS2110 Project Planning and Management',icon:'📆',lessons:[{t:'CPM Basics',b:'WBS (Work Breakdown Structure): project එක කුඩා activities වලට කඩනවා.\nForward pass: EF = ES + duration. Backward pass: LS = LF − duration.\nFloat = LS − ES. Float 0 ඇති activities වලින් හැදෙන දිගම path එක තමයි Critical Path.\nCritical activity එකක් ප්‍රමාද වුණොත් මුළු project එකම ප්‍රමාද වෙනවා.',q:[{q:'Critical path එක?',o:['දිගම path එක (float 0)','කෙටිම path එක','Cost වැඩිම path එක'],a:0}]}]},
+{id:'qs2120',title:'QS2120 Construction Costing',icon:'💰',lessons:[{t:'Unit Rate Build-up',b:'Direct cost = Materials + Labour + Plant.\nඒකට Overheads (site සහ head office) සහ Profit එකතු කරලා final rate එක හැදෙනවා.\nUnit rate එකක් හදනකොට: quantity එකකට material, wastage %, labour hours, plant hours ගණන් කරන්න.\nඉහළ rate එකෙන් bid එක නැතිවෙන්න පුළුවන්; පහළ rate එකෙන් පාඩුවක් වෙන්න පුළුවන්.'}]},
+{id:'qs2080',title:'QS2080 Services III',icon:'🔧',lessons:[{t:'Building Services Overview',b:'ප්‍රධාන කොටස්: HVAC (Heating, Ventilation, Air Conditioning), Vertical transportation (lifts, escalators), Electrical, Plumbing සහ Fire protection.\nQS කෙනෙක් services වල cost plan, quantities සහ specifications පරීක්ෂා කරනවා.\nBIM එකේදී services සහ structure අතර clash බලනවා.\nමෙය general overview එකක් — ඔයාගේ lecture notes එක්ක සසඳන්න.'}]},
+{id:'qs2160',title:'QS2160 Business Statistics and OR',icon:'📊',lessons:[{t:'Statistics and LP',b:'Mean (සාමාන්‍යය), Median (මධ්‍යස්ථය), Mode (බහුලතම අගය), Standard deviation (විසිරීම).\nLinear Programming: Decision variables, Objective function (max/min), Constraints.\nGraph එකෙන් Feasible region එක අඳිනවා; optimum answer එක ඒ region එකේ corner point එකක තියෙනවා.',q:[{q:'LP එකේ optimum එක තියෙන්නේ?',o:['Corner point එකක','Region එකේ මැද','Region එකෙන් පිට'],a:0}]}]},
+{id:'qs2090',title:'QS2090 Law of Property',icon:'⚖️',lessons:[{t:'Property Law Basics',b:'ශ්‍රී ලංකාවේ property law හි පදනම Roman-Dutch law එක.\nOwnership (අයිතිය) සහ Possession (භුක්තිය) වෙනස් දේවල්.\nඉඩමක් පැවරීම deed එකකින්; notary කෙනෙක් attest කළ යුතු අතර Land Registry එකේ register කරන්න ඕන.\nPrescription: වෙනත් කෙනෙකුගේ ඉඩමක් අවුරුදු 10ක් අඛණ්ඩව, විරුද්ධත්වයකින් තොරව භුක්ති විඳියොත් අයිතිය ලැබීමේ හැකියාවක් ඇත.\nDetails ඔයාගේ lecture notes වලින් තහවුරු කරගන්න.'}]},
+{id:'qs2140',title:'QS2140 Civil Engineering Construction I',icon:'🧱',lessons:[{t:'Foundations and Concrete',b:'Foundations: Shallow (strip, pad, raft) සහ Deep (piles). පසේ bearing capacity අඩු නම් deep foundations ඕන.\nConcrete: Cement + Sand + Aggregate + Water. Water-cement ratio වැඩි වෙන්න strength අඩු වෙනවා.\nSlump test එකෙන් workability බලනවා. Curing නොකළොත් strength අඩු වෙනවා.',q:[{q:'Water-cement ratio වැඩි වුණොත් strength?',o:['අඩු වෙනවා','වැඩි වෙනවා','වෙනසක් නැහැ'],a:0}]}]},
+{id:'qs2150',title:'QS2150 Project Study II',icon:'🔬',lessons:[{t:'Research Structure',b:'ප්‍රධාන කොටස්: Problem statement, Objectives, Literature review, Methodology, Data analysis, Conclusion.\nObjectives SMART විය යුතුයි (Specific, Measurable, Achievable, Relevant, Time-bound).\nLiterature review එකෙන් දැනටමත් කළ දේ සහ gap එක පෙන්වන්න.\nMethodology: Qualitative ද Quantitative ද, data එකතු කරන ක්‍රමය (survey, interview).'}]},
+{id:'ann',title:'Announcing',icon:'🎤',lessons:[{t:'Announcer Basics',b:'Diction (පැහැදිලි උච්චාරණය), Tone සහ Pace — announcer කෙනෙකුගේ මූලික දේවල්.\nScript එක කියවන්න කලින් pause වෙන තැන් "/" ලකුණු කරන්න, වැදගත් වචන underline කරන්න.\nදිනපතා විනාඩි 15ක් හයියෙන් කියවලා record කරලා අහන්න.'},{t:'Event and Radio Announcing',b:'Intro එකේදී කවුද, මොකක්ද, කවදාද, කොහෙද කියන්න (who, what, when, where).\nEvent එකේ energy එකට ගැලපෙන විදියට ස්වරය හදාගන්න.\nMic technique: mic එකෙන් අඟල් 4-6ක් දුරින් කතා කරන්න; p සහ b ශබ්ද වලින් එන හුස්ම පිපිරීම (plosives) අඩු කරන්න.'}]},
+{id:'dub',title:'Dubbing',icon:'🎬',lessons:[{t:'Dubbing Basics',b:'Lip sync: රූපයේ කට චලනයට කාලය ගැලපෙන්න ඕන.\nමුල් performance එකේ emotion සහ energy එක ගැලපෙන්න ඕන, නමුත් සිංහල ස්වභාවිකව ඇහෙන්න ඕන; අධික acting එපා.\nScene එක බලන්න, original එක අහන්න, ඊට පස්සේ take කිහිපයක් record කරන්න.\nනිහඬ කාමරයක් සහ pop filter එකක් පාවිච්චි කරන්න.'},{t:'Build a Demo Reel',b:'Demo reel එක තත්පර 60-90ක් වෙන්න ඕන.\nවිවිධ styles 4-5ක් දාන්න: commercial, cartoon, drama, documentary narration, news.\nWAV හෝ MP3 එකක් විදියට export කරලා studios, agencies සහ radio stations වලට යවන්න.\nහොඳම clip එක මුලින්ම දාන්න.'}]},
+{id:'mgt',title:'Time and Self Management',icon:'⏱️',lessons:[{t:'Eisenhower and Pareto',b:'Eisenhower Matrix: Urgent + Important → දැන්ම කරන්න; Important පමණක් → schedule කරන්න; Urgent පමණක් → delegate කරන්න; දෙකම නැත්නම් අයින් කරන්න.\nPareto 80/20: ප්‍රතිඵලවලින් 80%ක් එන්නේ උත්සාහයෙන් 20%කින්.\nසතිපතා Sunday review: ඉවර කළ දේ බලන්න, ඊළඟ සතියේ top 3 goals තෝරන්න.\nVoxel වැඩවලින් delegate කළ හැකි ඒවා හඳුනාගන්න.'}]});
+const _vL=vLearn;vLearn=function(){if(cid)return _vL();const w=new Date(day+'T00:00').getDay(),t=S.classes.filter(c=>c.dow===w&&/QS\d+/.test(c.course)).sort(byStart),seen={};
+const tc=t.filter(c=>{const k='qs'+c.course.match(/QS(\d+)/)[1];if(seen[k]||!ALL().some(x=>x.id===k))return 0;seen[k]=1;return 1});
+return (tc.length?card('📚 Today\'s classes → open the course',tc.map(c=>{const k='qs'+c.course.match(/QS(\d+)/)[1];return `<div class="item blk" onclick="cid='${k}';li=null;render()" style="cursor:pointer"><div class="grow"><div class="when">${esc(c.start)}</div><b>${esc(c.course)}</b></div></div>`}).join('')):'')+_vL()};
+function vGoal(){S.pl=S.pl||{};const g=S.gd=S.gd||iso(new Date(Date.now()+90*864e5)),n=Math.round((new Date(g+'T00:00')-new Date(iso(new Date())+'T00:00'))/864e5),wk=Object.keys(S.pl).filter(d=>d>=mon()).reduce((s,d)=>s+S.pl[d],0);
+return card('🎯 Goal: paid announcer / dubbing work',`<div class="big">${n} <span class="mute" style="font-size:1rem">days left</span></div><label>Target date</label><input type="date" value="${g}" onchange="S.gd=this.value;save();render()">`)
++card('🎙️ Practice minutes',`<div class="row"><input id="pm" type="number" inputmode="numeric" placeholder="Minutes today"><button class="btn go" onclick="S.pl[iso(new Date())]=(S.pl[iso(new Date())]||0)+(+val('pm')||0);save();render()">Add</button></div><div class="mute">This week: <b>${wk}</b> min · today: ${S.pl[iso(new Date())]||0} min</div>`)
++chkCard('🌱 Month 1 · Foundation','g1',['15 min read-aloud and record, daily','Finish Announcing and Dubbing courses','Pick 3 role models and study their delivery','Make a pronunciation list (Sinhala and English)','Set up a decent mic and a quiet corner'],0)
++chkCard('🎞️ Month 2 · Portfolio','g2',['Record 5 clips: commercial, news, drama, narration, cartoon','Edit a 60–90 s demo reel','Get feedback from 2 people in the field','Make a page for your voice work'],0)
++chkCard('📨 Month 3 · Outreach','g3',['List 20 studios, radio stations, event companies','Send your demo to 5 a week','Do 2 trial gigs for testimonials','Attend 1 audition or event','Set your rate card'],0)}
+render();
+</script><script>AREAS.Voice='🎙️';
+COURSES.push({id:'qs2160',title:'QS2160 Business Statistics and OR (Advanced)',icon:'📊',lessons:[
+{t:'LP: Formulation and Graphical Solution',b:'ගැටලුව: Contractor කෙනෙක් Type A සහ Type B ගෘහ ඒකක හදනවා. x = Type A ගණන, y = Type B ගණන. ලාභය (රු.\'000): A එකකට 40, B එකකට 30.\nObjective: Maximise Z = 40x + 30y\nConstraints: Labour: 2x + y ≤ 100; Material: x + y ≤ 80; x, y ≥ 0.\nපියවර 1: constraint lines අඳින්න. පියවර 2: Feasible region එක සොයන්න. පියවර 3: Corner points වල Z ගණනය කරන්න.\n(0,0) → Z=0; (50,0) → Z=2000; (0,80) → Z=2400; (20,60) [2x+y=100 සහ x+y=80 විසඳූ විට] → Z=2600.\nOptimum: x=20, y=60, Z=2600. මෙහිදී constraint දෙකම binding (slack = 0).',q:[{q:'Corner point (20,60) හි Z අගය?',o:['2400','2600','2000'],a:1}]},
+{t:'Sensitivity and Shadow Price',b:'Shadow price කියන්නේ constraint එකක right-hand side එක 1කින් වැඩි කළොත් objective value එක වෙනස් වන ප්‍රමාණය.\nLabour 100 → 101: 2x+y=101 සහ x+y=80 විසඳූ විට x=21, y=59, Z=2610. එනිසා Labour shadow price = 10.\nMaterial 80 → 81: x=19, y=62, Z=2620. එනිසා Material shadow price = 20.\nතීරණය: Material වැඩි කරගැනීම Labour වැඩි කරගැනීමට වඩා වටිනවා (20 vs 10).\nBinding නොවන constraint එකක shadow price = 0 (slack ඇති නිසා).',q:[{q:'Binding නොවන constraint එකක shadow price?',o:['0','10','20'],a:0}]},
+{t:'Hypothesis Testing (Z-test) and Regression',b:'Z-test: H0: μ = 50, H1: μ ≠ 50 (two-tailed, 5% significance).\nz = (x̄ − μ) / (σ/√n). උදා: n=36, x̄=52, σ=6 → σ/√n = 1 → z = 2.\nCritical value = ±1.96. |z| = 2 > 1.96 නිසා H0 reject කරනවා.\nRegression: y = a + bx. b = Σ(x−x̄)(y−ȳ) / Σ(x−x̄)², a = ȳ − b·x̄.\nr (correlation) −1 සිට +1 දක්වා; r² යනු y හි විචලනයෙන් x මගින් පැහැදිලි කරන කොටස.\nExam tip: hypotheses, test statistic, critical value, decision — පියවර සියල්ලම ලියන්න.',q:[{q:'z=2 සහ critical ±1.96 නම් තීරණය?',o:['H0 reject','H0 reject කරන්නේ නැහැ','Test එක වලංගු නැහැ'],a:0}]}]});
+const _e3=ensure;ensure=function(){_e3();S.tgt.Voice=S.tgt.Voice||5};
+const PH=[['Now → 21 Nov','Uni push + daily voice basics','2026-11-21',{Uni:32,Tuition:5,Voxel:6,Reading:2,Learn:3,Markets:1,Health:4,Voice:5}],
+['22 Nov → 7 Dec','Exam prep (viva 24 Nov), keep voice alive','2026-12-07',{Uni:38,Tuition:4,Voxel:4,Reading:1,Learn:2,Markets:1,Health:4,Voice:3}],
+['8 → 19 Dec','Exams only, protect sleep','2026-12-19',{Uni:40,Tuition:2,Voxel:2,Reading:0,Learn:0,Markets:0,Health:4,Voice:1}],
+['20 Dec → Feb','Full push: demo reel, outreach, MathLab, Voxel','2027-03-01',{Uni:10,Tuition:8,Voxel:10,Reading:3,Learn:5,Markets:2,Health:5,Voice:12}]];
+const curPh=()=>{const t=iso(new Date());const i=PH.findIndex(p=>t<=p[2]);return i<0?3:i};
+function freeFor(ds){const w=new Date(ds+'T00:00').getDay(),bz=[...S.classes.filter(c=>c.dow===w&&(!c.until||ds<=c.until)),...S.blocks.filter(b=>b.date===ds)].map(x=>[mins(x.start),mins(x.end)]).sort((a,b)=>a[0]-b[0]);let t=420,o=[];bz.forEach(b=>{if(b[0]-t>=45)o.push([t,b[0]]);t=Math.max(t,b[1])});if(1290-t>=45)o.push([t,1290]);return o}
+function vPlan(){const c=curPh();return card('🗺️ 3–4 month master plan',PH.map((p,i)=>`<div class="item ${i===c?'blk':''}" style="${i===c?'':'opacity:.6'}"><div class="grow"><b>${i===c?'▶ ':''}${p[0]}</b><div class="mute">${p[1]}</div><div class="mute">${Object.entries(p[3]).filter(e=>e[1]).map(e=>AREAS[e[0]]+e[1]).join(' · ')} h/week</div></div></div>`).join('')+'<p class="mute">Exams start 8 Dec, so Nov and early Dec go to uni. The big announcer/dubbing push starts after exams, with daily voice practice before that.</p>')
++card('⚙️ Auto-balance',`<p class="mute" style="margin:0 0 10px">1. Apply this phase\'s weekly targets. 2. Fill the free slots of this week automatically (45+ min gaps, 07:00–21:30). Edit or delete blocks afterwards.</p><div class="row"><button class="btn" onclick="S.tgt=Object.assign({},PH[curPh()][3]);save();render()">Apply targets</button><button class="btn go" onclick="fillWeek()">Fill my week</button></div>`)}
+function fillWeek(){if(!confirm('Add study/work blocks to the free slots of this week?'))return;const w=wkH(),def={};Object.keys(S.tgt).forEach(a=>def[a]=S.tgt[a]-(w[a]||0));const m=new Date(mon()+'T00:00'),t0=iso(new Date());let n=0;
+for(let i=0;i<7;i++){const x=new Date(m);x.setDate(m.getDate()+i);const ds=iso(x);if(ds<t0)continue;
+freeFor(ds).forEach(f=>{let s=f[0];while(f[1]-s>=45){const a=Object.keys(def).sort((p,q)=>def[q]-def[p])[0];if(!a||def[a]<.5)return;const e=Math.min(f[1],s+90);S.blocks.push({id:uid(),date:ds,start:hm(s),end:hm(e),title:a==='Uni'?'Self-study':a+' focus',a,done:false});def[a]-=(e-s)/60;s=e+15;n++}})}
+save();alert(n+' blocks added.');render()}
+render();
+const FULL=[];
+const _vL3=vLearn;vLearn=function(){return (cid||!FULL.length?'':card('🧩 Full interactive courses',FULL.map(f=>`<a class="item blk" href="${f[2]}" target="_blank" onclick="return openMk()" style="text-decoration:none;color:inherit"><div style="font-size:1.6rem">${f[0]}</div><div class="grow"><b>${esc(f[1])}</b><div class="mute">Opens the full lesson with practice and quiz</div></div></a>`).join('')))+_vL3()};
+render();
+
+function openMk(){if(typeof MKT==='undefined')return true;window.open(URL.createObjectURL(new Blob([MKT],{type:'text/html'})),'_blank');return false}
+</script><script>COURSES.push(
+{id:'ann',title:'Announcing and Voice (Advanced)',icon:'🎤',lessons:[
+{t:'1. Breath Support',b:'කටහඬ හැදෙන්නේ හුස්ම (breath), vocal cords සහ resonance (අනුනාදය) තුනෙන්.\nBreath support: උරහිස් නොඔසවා, බඩ පැත්තෙන් (diaphragm) හුස්ම ගන්න. අත බඩ උඩ තියාගෙන හුස්ම ගන්නකොට අත එළියට යන්න ඕන.\nක්‍රමය 4-4-6: තත්පර 4ක් හුස්ම ගන්න, 4ක් රඳවන්න, 6ක් ගත වන සේ "ssss" ශබ්දයෙන් හෙමින් පිටකරන්න. සති දෙකක් ඇතුළත 6 → 10 දක්වා වැඩි කරන්න.\nවාක්‍යය මැදදී හුස්ම ගන්න වෙනවා නම් support එක මදි; කතා කරන්න කලින් පහළට හුස්ම ගන්න.\nකටහඬ ආරක්ෂා කරන්න: වතුර බොන්න, තද කරලා කෑගහන්න එපා, සැහැල්ලුවෙන් කතා කරන්න.',p:'දවසකට විනාඩි 5ක් 4-4-6 breathing කරලා, "ssss" count එක දිනපතා note කරන්න.',q:[{q:'Breath support එකට හුස්ම ගන්න ඕන?',o:['උරහිස් ඔසවා','Diaphragm (බඩ) පැත්තෙන්','ඉක්මනින් මුඛයෙන් පමණක්'],a:1}]},
+{t:'2. Diction and Articulation',b:'Diction යනු වචනවල අකුරු පැහැදිලිව ඇහෙන්න කීමයි. Articulation යනු දිව, තොල්, හකු භාවිතා කිරීම.\nformal announcing වලදී ණ/න, ල/ළ, ශ/ෂ/ස වැනි අකුරු නිවැරදිව උච්චාරණය කරන්න. English වචන කියන විටත් නිවැරදි stress එක දාන්න.\nDrills: Lip trills සහ tongue twisters (හෙමින් → වේගයෙන්).\nPencil drill: පැන්සලක් දත් අතර තබාගෙන පිටුවක් කියවන්න, ඊට පස්සේ අයින් කරලා නැවත කියවන්න. අපැහැදිලි වුණු වචන ලියාගන්න.\nවචනයක අවසාන අකුර ගිල දමන්න එපා.',p:'ඔයාට අමාරු වචන 10ක් ලියාගෙන දිනපතා 5 වතාවක් කියන්න.',q:[{q:'Pencil drill එකෙන් පුහුණු වන්නේ?',o:['දිවේ/තොලේ පැහැදිලි චලනය','Voice volume වැඩි කිරීම','Script කටපාඩම් කිරීම'],a:0}]},
+{t:'3. Pace, Pause, Pitch, Emphasis',b:'Pace: පැහැදිලි narration/news සඳහා විනාඩියකට වචන 140-160 පමණ; hype ads වේගවත්, emotional ads මන්දගාමී.\nPause: කොමා/තිත ළඟ කෙටි නැවතුමක්; වැදගත් වචනයකට කලින් pause එකකින් අවධානය ගන්න.\nPitch: statement එකක අවසානයේ පහළට; ප්‍රශ්නයක අවසානයේ ඉහළට.\nEmphasis: වාක්‍යයේ ප්‍රධාන වචනයක් එකක් දෙකක් තද කරන්න. හැම වචනයකටම තද කළොත් කිසිවක් තද නැහැ.\nScript marking: / = කෙටි pause, // = දිග pause, underline = emphasis, ↑ ↓ = pitch.',p:'Paragraph එකක් mark කරලා record කරන්න. Marking නැතිව එකත් record කරලා සසඳන්න.',q:[{q:'වාක්‍යයක emphasis දිය යුත්තේ?',o:['ප්‍රධාන වචන එකක් දෙකකට','හැම වචනයකටම','කිසිවකට නෙවෙයි'],a:0}]},
+{t:'4. Event, Radio and MC',b:'Event MC: Introduce → Build energy → Hand over. Programme flow, timing සහ නම්වල නිවැරදි උච්චාරණය (කලින් අසාගන්න) වැදගත්.\nRadio: mic එකෙන් අඟල් 4-6 (සෙ.මී. 10-15) දුරින්, plosives (p, b) අඩු කරන්න, එක කෙනෙකුට කතා කරන විදියට කතා කරන්න.\nහොඳ intro: Who, What, When, Where — තත්පර 10ක් ඇතුළත.\nDead air (නිහඬතාව) වළක්වන්න: backup lines 3ක් සූදානම් කරගන්න.\nසජීවීව වැරදීමක් වුණොත් නතර වෙලා ආයෙ කියන්න එපා; ස්වභාවිකව ඉදිරියට යන්න. Event එකට කලින් sound check කරන්න.',p:'තත්පර 30ක Event intro එකක් (who/what/when/where) ලියලා record කරන්න.',q:[{q:'හොඳ intro එකක තියෙන්න ඕන?',o:['Who, What, When, Where','Price පමණයි','Joke එකක් පමණයි'],a:0}]},
+{t:'5. Acting for Voice and Weekly Plan',b:'Voice acting: Objective (චරිතයට ඕන දේ), Obstacle (බාධාව), Emotion, Subtext (කියන දේට වඩා අදහස).\nපේළියක් සතුට, කෝපය, දුක යන emotions තුනෙන් record කරලා වෙනස ඇහෙනවාදැයි බලන්න.\nPresenting: script එකට නොව, අහන්නාට කතා කරන්න.\nසතියක පුහුණුව: Mon/Wed/Fri — breathing + diction (20 min); Tue/Thu — script reading + record (20 min); Sat — acting + review (30 min); Sun — විවේකය.',p:'ඔයාගේ record එකක් අහලා ශක්තිමත් දෙයක් 1ක් සහ වැඩිදියුණු කළ යුතු දෙයක් 1ක් ලියන්න.',q:[{q:'Subtext යනු?',o:['කියන දේට වඩා ඇති අදහස','Script එකේ අවසානය','Mic එකක වර්ගයක්'],a:0}]}]},
+{id:'dub',title:'Dubbing (Advanced)',icon:'🎬',lessons:[
+{t:'1. Dubbing Pipeline',b:'Dubbing යනු මුල් වීඩියෝවේ කථාව වෙනත් භාෂාවකින් නැවත record කිරීමයි.\nපියවර: Script translation/adaptation → Casting → Recording (studio) → Mixing → QC.\nAdaptation: වචනයෙන් වචනයට නොව, අරුතට සහ timing එකට ගැලපෙන ලෙස හැඩගැස්වීම.\nCue: කතා පටන් ගන්න සහ නතර කරන තැන් script එකේ ලකුණු කරන්න (timecode).\nStudio එකේදී Director ගේ notes අනුව takes කිහිපයක් දෙන්න.',p:'තත්පර 20ක ඉංග්‍රීසි clip එකක් සිංහලට adapt කරලා timing එකට ගැලපෙනවාදැයි බලන්න.',q:[{q:'Adaptation යනු?',o:['අරුතට සහ timing එකට ගැලපෙන ලෙස හැඩගැස්වීම','වචනයෙන් වචනයට පරිවර්තනය','වීඩියෝ edit කිරීම'],a:0}]},
+{t:'2. Lip Sync and Timing',b:'Lip sync යනු මුඛ චලනයට ගැලපීමයි. වචන ගණනට වඩා syllables සහ කට open/close වෙන තැන් වැදගත්.\nම, ප, බ වැනි ශබ්ද වලදී තොල් වැසෙනවා; ඒවා ගැලපිය යුතුයි.\nOff-screen හෝ narration වලදී lip sync අවශ්‍ය නැහැ, timing පමණක් බලන්න.\nදිග ගැලපෙන්න කෙටි වාක්‍ය හෝ filler වචන යොදාගන්න.\nප්‍රායෝගිකව: scene එක 3 වතාවක් බලන්න; headphones දාගෙන record කරන්න; ඔබේ take එක video එක සමඟ play කරලා බලන්න.',p:'තත්පර 15ක clip එකකට dub කරලා video එකත් එක්ක play කරලා ගැලපෙනවාදැයි බලන්න.',q:[{q:'ම, ප, බ වැනි ශබ්ද වලදී?',o:['තොල් වැසෙනවා','කට ලොකුවෙන් විවෘත වෙනවා','දිව එළියට එනවා'],a:0}]},
+{t:'3. Emotion and Character Voices',b:'මුල් නළුවාගේ energy (volume, pitch, pace) අහලා ගැලපෙන්න.\nකෑගැසීම්, whisper, හිනාව, අඳෝනාව: breath support එකෙන් කරන්න, උගුරෙන් නෙවෙයි. දිගුකාලීන කෑගැසීමෙන් voice එක හානි වෙනවා.\nCharacter voice: pitch, pace සහ accent තුනෙන් character එකක් හදන්න.\nConsistency: take එකෙන් take එකට, episode එකෙන් episode එකට එකම character voice එක තියාගන්න.',p:'එකම පේළිය සතුට, බිය, කෝපය යන emotions තුනෙන් record කරන්න.',q:[{q:'Character voice එකක consistency යනු?',o:['Take එකෙන් take එකට එකම voice එක','හැම take එකක්ම වෙනස් කිරීම','වඩා හයියෙන් කතා කිරීම'],a:0}]},
+{t:'4. Demo Reel and Getting Work',b:'Demo reel: තත්පර 60-90, හොඳම clip එක මුලින්ම. Styles: commercial, narration, character, drama.\nRecording quality: නිහඬ කාමරය (රෙදි/mattress වලින් echo අඩු කරන්න), pop filter, WAV 44.1/48 kHz, peaks −6 dB පමණ (clip නොවන ලෙස).\nWork සොයන තැන්: studios, radio stations, ad agencies, YouTube/animation creators. Voxel හරහා ඔබේ clients ගේ වීඩියෝ වලට voiceover කරන්නත් පුළුවන්.\nමුල් gigs වලින් testimonial සහ credits ගන්න; rate card එකක් හදාගන්න (per minute / per project).\nසතියට outreach 5ක් යවලා, යැවූ ඒවා track කරන්න.',p:'Demo reel එකට clips 4ක් තෝරලා පිළිවෙල හදන්න.',q:[{q:'Demo reel එකේ හොඳම clip එක දාන්න ඕන?',o:['මුලින්ම','අන්තිමට','මැදට'],a:0}]}]});
+render();
+</script><script>const _e5=ensure;ensure=function(){_e5();S.hc=S.hc||[]};
+const _vL5=vLearn;vLearn=function(){if(cid)return _vL5();
+return card('➕ Add a full course',`<p class="mute" style="margin:0 0 10px">Pick a course file (.html or .json). It is saved inside this planner on your phone. Adding a file with the same title updates that course.</p><div class="row"><button class="btn go" onclick="$('#hcf').click()">Choose course file</button></div><input type="file" id="hcf" accept=".html,.htm,.json,text/html,application/json" class="hid" onchange="addHC(event)">`)
++(S.hc.length?card('📥 My added courses',S.hc.map(c=>`<div class="item blk"><div class="grow" onclick="openHC('${c.id}')" style="cursor:pointer"><b>${esc(c.t)}</b><div class="mute">Tap to open · ${Math.round(c.h.length/1024)} KB</div></div><button class="x" onclick="if(confirm('Delete this course?')){del('hc','${c.id}')}">🗑️</button></div>`).join('')):'')+_vL5()};
+function openHC(id){const c=S.hc.find(x=>x.id===id);if(c)window.open(URL.createObjectURL(new Blob([c.h],{type:'text/html'})),'_blank')}
+function addHC(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const t=r.result;try{
+if(/\.json$/i.test(f.name)){[].concat(JSON.parse(t)).forEach(c=>{if(!c.id||!c.title||!Array.isArray(c.lessons))throw 0;c.id=String(c.id).replace(/\W/g,'');S.courses=S.courses.filter(x=>x.id!==c.id);S.courses.push(c)})}
+else{const m=t.match(/<title>([^<]*)/i),ti=(m&&m[1].trim())||f.name,o=S.hc.find(x=>x.t===ti);if(o)o.h=t;else S.hc.push({id:uid(),t:ti,h:t})}
+try{localStorage.setItem(K,JSON.stringify(S))}catch(x){alert('Phone storage is full. Delete an old course first.');location.reload();return}render()}catch(x){alert('Could not add this file. It must be a course .html or a valid .json.')}};r.readAsText(f);e.target.value=''}
+render();
+</script><script>const _e6=ensure;ensure=function(){_e6();S.t3=S.t3||{};S.wr=S.wr||{};S.cnt=S.cnt||{}};
+function t3(i){S.t3[day][i].d=!S.t3[day][i].d;save();render()}
+const _vT=vToday;vToday=function(){const a=(S.t3[day]=S.t3[day]||[{t:'',d:0},{t:'',d:0},{t:'',d:0}]);
+return card('⭐ Today\'s top 3',a.map((x,i)=>`<div class="item ${x.d?'done':''}"><input type="checkbox" ${x.d?'checked':''} onchange="t3(${i})"><input value="${esc(x.t)}" placeholder="Most important thing ${i+1}" onchange="S.t3[day][${i}].t=this.value;save()" style="background:transparent;padding:6px"></div>`).join(''))
++card('⏱️ Focus timer',`<div class="big" id="ftm">${ft?'…':'25:00'}</div><div class="row"><button class="btn go" onclick="focus(25)">25 min</button><button class="btn" onclick="focus(50)">50 min</button><button class="btn" onclick="clearInterval(ft);ft=null;render()">Stop</button></div>`)+_vT()};
+let ft=null,fe=0;
+function focus(m){clearInterval(ft);fe=Date.now()+m*6e4;ft=setInterval(()=>{const s=Math.max(0,Math.round((fe-Date.now())/1e3)),el=$('#ftm');if(el)el.textContent=String(s/60|0).padStart(2,'0')+':'+String(s%60).padStart(2,'0');if(!s){clearInterval(ft);ft=null;navigator.vibrate&&navigator.vibrate([300,150,300]);alert('Time is up. Take a break!')}},500)}
+const CN=[['demos','📨 Demos sent'],['auds','🎤 Auditions'],['gigs','💰 Paid gigs']];
+function cn(k,n){S.cnt[k]=Math.max(0,(S.cnt[k]||0)+n);save();render()}
+const _vG=vGoal;vGoal=function(){return _vG()+card('📈 Results so far',CN.map(c=>`<div class="item"><div class="grow"><b>${c[1]}</b>: ${S.cnt[c[0]]||0}</div><button class="btn" onclick="cn('${c[0]}',-1)">−</button><button class="btn go" onclick="cn('${c[0]}',1)">+</button></div>`).join(''))};
+function vRev(){const k=mon(),r=S.wr[k]||[],m=new Date(k+'T00:00'),ds=[...Array(7)].map((_,i)=>{const d=new Date(m);d.setDate(m.getDate()+i);return iso(d)}),bl=S.blocks.filter(b=>ds.includes(b.date)),pm=ds.reduce((s,d)=>s+((S.pl||{})[d]||0),0);
+return card('🔁 Weekly review · week of '+k,`<div class="mute" style="margin-bottom:8px">Blocks done: <b>${bl.filter(b=>b.done).length}/${bl.length}</b> · voice practice: <b>${pm}</b> min</div>`+['Wins this week','What went wrong / lessons','Top 3 for next week'].map((l,i)=>`<label>${l}</label>${TA('wr'+i,3,'',r[i])}`).join('')+`<div class="row"><button class="btn go" onclick="S.wr['${k}']=[0,1,2].map(i=>$('#wr'+i).value);save();alert('Review saved')">Save review</button></div>`)}
+render();
+</script><script>const PH_=3054112856,hs=s=>{let x=5381;for(const c of 'pl'+s)x=((x*33)^c.charCodeAt(0))>>>0;return x};let tries=0,until=0,hid=0;
+document.head.insertAdjacentHTML('beforeend','<style>#lk{position:fixed;inset:0;z-index:999;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;text-align:center}#lk input{max-width:220px;text-align:center;font-size:1.6rem;letter-spacing:.4em}</style>');
+document.body.insertAdjacentHTML('beforeend','<div id="lk"><div style="font-size:2.4rem">🔒</div><b>My Planner</b><input id="lp" type="password" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="off"><button class="btn go" onclick="unlock()">Unlock</button><div class="mute" id="lm"></div></div>');
+function lock(){$('#lk').style.display='flex';$('#lp').value='';$('#lm').textContent=''}
+function unlock(){if(Date.now()<until){$('#lm').textContent='Wait a moment…';return}if(hs($('#lp').value)===PH_){tries=0;$('#lk').style.display='none'}else{tries++;$('#lp').value='';$('#lm').textContent='Wrong PIN';if(tries>=5){until=Date.now()+30000;tries=0;$('#lm').textContent='Too many tries. Wait 30 seconds.'}}}
+$('#lp').addEventListener('input',e=>{if(e.target.value.length===6)unlock()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)hid=Date.now();else if(hid&&Date.now()-hid>60000)lock()});
+lock();
+</script><script>
+// ---- Individual classes + eClass
+const _e7=ensure;ensure=function(){_e7();S.il=S.il||[];S.ec=S.ec||{u:'',c:{}};S.ec.c=S.ec.c||{}};
+const _mo=()=>iso(new Date()).slice(0,7),_rs=n=>'Rs. '+Math.round(n).toLocaleString('en-US'),_ind=()=>S.classes.filter(c=>c.ind);
+function vInd(){const L=_ind(),m=_mo(),ses=c=>S.il.filter(x=>x.c===c.id&&x.d.slice(0,7)===m),fee=c=>+c.fee||0;
+ let n=0,e=0,u=0;L.forEach(c=>{const s=ses(c);n+=s.length;e+=s.length*fee(c);u+=s.filter(x=>!x.p).length*fee(c)});
+ return card('🧑‍🏫 Individual classes · '+m,`<div class="big">${_rs(e)}</div><div class="mute" style="text-align:center">${n} sessions this month · unpaid <b>${_rs(u)}</b></div>`)
+ +card('📋 My classes ('+L.length+')',L.map(c=>{const s=ses(c),up=s.filter(x=>!x.p).length;return `<div class="item blk"><div class="grow"><b>${esc(c.course)}</b><div class="mute">${DN[c.dow]} ${esc(c.start)}–${esc(c.end)}${c.venue?' · '+esc(c.venue):''} · ${_rs(fee(c))}</div><div class="mute">${s.length} held · ${up} unpaid</div></div><button class="btn" onclick="held('${c.id}')">+ Held</button><button class="btn" onclick="paid('${c.id}')">Paid</button><button class="x" onclick="unheld('${c.id}')" aria-label="Undo last session">↶</button><button class="x" onclick="if(confirm('Delete this class?'))del('classes','${c.id}')" aria-label="Delete">✕</button></div>`}).join('')||empty('🧑‍🏫','No individual classes yet.<br>Add your first one below.'))
+ +card('➕ Add an individual class',`<div class="row"><input id="iqn" placeholder="Student or group name"></div><div class="row"><input id="iqs" placeholder="Subject (e.g. A/L Maths)"></div><div class="row"><select id="iqd">${ORD.map(d=>`<option value="${d}">${DN[d]}</option>`).join('')}</select><input id="iqf" type="number" inputmode="numeric" placeholder="Fee per session (Rs.)"></div><div class="row"><div><label style="margin-top:0">From</label><input type="time" id="iqa"></div><div><label style="margin-top:0">To</label><input type="time" id="iqb"></div></div><div class="row"><input id="iqv" placeholder="Venue or Online (optional)"></div><div class="row"><button class="btn go" onclick="addInd()">Add class</button></div>`)}
+function addInd(){const n=val('iqn'),s=val('iqa');if(!n||!s){alert('Please enter a name and a start time.');return}
+ const sb=val('iqs');S.classes.push({id:uid(),course:n+(sb?' · '+sb:''),a:'Tuition',dow:+$('#iqd').value,start:s,end:val('iqb')||s,venue:val('iqv'),ind:1,fee:+val('iqf')||0});save();render()}
+function held(id,d){d=d||iso(new Date());if(S.il.some(x=>x.c===id&&x.d===d)){alert('Already logged for this day.');return}S.il.push({id:uid(),c:id,d,p:false});save();render()}
+function paid(id){const m=_mo();S.il.forEach(x=>{if(x.c===id&&x.d.slice(0,7)===m)x.p=true});save();render()}
+function unheld(id){const L=S.il.filter(x=>x.c===id).sort((a,b)=>a.d.localeCompare(b.d)),z=L[L.length-1];if(z&&confirm('Remove the last logged session ('+z.d+')?')){S.il=S.il.filter(x=>x!==z);save();render()}}
+const _vT2=vToday;vToday=function(){const w=new Date(day+'T00:00').getDay(),L=_ind().filter(c=>c.dow===w).sort(byStart);
+ return (L.length?card('🧑‍🏫 Individual classes today',L.map(c=>{const h=S.il.some(x=>x.c===c.id&&x.d===day);return `<div class="item blk ${h?'done':''}"><div class="grow"><div class="when">${esc(c.start)} – ${esc(c.end)}</div><b>${esc(c.course)}</b></div>${h?'✅':`<button class="btn" onclick="held('${c.id}',day)">Held</button>`}</div>`}).join('')):'')+_vT2()};
+function vEcl(){const cs=[...new Set(S.classes.filter(c=>!c.ind&&/QS\d+/.test(c.course)).map(c=>c.course.match(/QS\d+/)[0]))].sort();
+ return card('📬 eClass',`<div class="row"><input id="ecu" placeholder="eClass site address (https://…)" value="${esc(S.ec.u||'')}"></div><div class="row"><button class="btn" onclick="S.ec.u=val('ecu');save();render()">Save</button><button class="btn go" onclick="ecOpen('')">Open eClass</button></div><p class="mute" style="margin:0">eClass needs your login, so the planner cannot read it directly. Open it from here and import its calendar below.</p>`)
+ +card('🎓 Course pages',cs.map(k=>`<div class="item blk"><div class="grow"><b>${k}</b><input placeholder="Course page link (optional)" value="${esc(S.ec.c[k]||'')}" onchange="S.ec.c['${k}']=this.value.trim();save()" style="margin-top:6px;padding:8px"></div><button class="btn" onclick="ecOpen('${k}')">Open</button></div>`).join('')||empty('🎓','Load your timetable first (Schedule tab).'))
+ +card('📥 Import eClass calendar',`<p class="mute" style="margin:0 0 10px">In eClass open Calendar, choose Export calendar, and save the .ics file. Pick it here and the due dates become deadlines.</p><div class="row"><button class="btn go" onclick="$('#ecf').click()">Choose .ics file</button></div><input type="file" id="ecf" accept=".ics,text/calendar" class="hid" onchange="ecImp(event)">`)
+ +chkCard('✅ eClass check (weekly)','ec',['New announcements','New lecture notes and materials','Assignment and quiz dates','Group work messages'],2)}
+function ecOpen(k){let u=(k&&S.ec.c[k])||S.ec.u;if(!u){alert('Save your eClass address first.');return}if(!/^https?:\/\//i.test(u))u='https://'+u;window.open(u,'_blank')}
+function ecImp(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{
+ const t=r.result.replace(/\r?\n[ \t]/g,''),old=iso(new Date(Date.now()-7*864e5));let n=0;
+ t.split('BEGIN:VEVENT').slice(1).forEach(b=>{const g=k=>{const m=b.match(new RegExp('^'+k+'[^:\\r\\n]*:(.*)$','m'));return m?m[1].trim():''};
+  const s=g('SUMMARY').replace(/\\n/g,' ').replace(/\\([,;\\])/g,'$1'),d=g('DTSTART').match(/^(\d{4})(\d\d)(\d\d)(?:T(\d\d)(\d\d)(\d\d)?(Z)?)?/);if(!s||!d)return;
+  let due=d[1]+'-'+d[2]+'-'+d[3],tm='';if(d[4]){tm=d[4]+':'+d[5];if(d[7]){const x=new Date(Date.UTC(+d[1],d[2]-1,+d[3],+d[4],+d[5]));due=iso(x);tm=x.toTimeString().slice(0,5)}}
+  if(due<old||S.deadlines.some(x=>x.title===s&&x.due===due))return;
+  S.deadlines.push({id:uid(),title:s,course:'eClass',a:'Uni',due,time:tm,done:false});n++});
+ save();alert(n+' deadlines added.');render()}catch(x){alert('Could not read this calendar file.')}};r.readAsText(f);e.target.value=''}
+render();
+</script>
+<script>
+// ---- Self growth: 10 tools
+const _e8=ensure;ensure=function(){_e8();Object.entries({jn:{},hab:[],hl:{},vo:[],sk:[],gl:[],sp:[],sg:{t:0,s:0},lw:{},ct:[],ll:{}}).forEach(([k,v])=>{if(!S[k])S[k]=v})};
+let pv='jn',bt=null;
+const PV=[['jn','🙏 Journal'],['hb','🔥 Habits'],['lg','💡 Learned'],['vo','🔤 Words'],['sk','⏳ Skills'],['gl','🎯 Goals'],['wh','🕸️ Life wheel'],['ct','🤝 Contacts'],['sp','💸 Money'],['br','🌬️ Breathe']],LW=['Health','Money','Career','Learning','Family','Friends','Fun','Mindset'];
+const rm=(k,id)=>`onclick="S.${k}=S.${k}.filter(y=>y.id!=='${id}');save();render()"`;
+function vSelf(){return `<div class="chips">${PV.map(p=>`<button class="chip ${p[0]===pv?'on':''}" onclick="pv='${p[0]}';render()">${p[1]}</button>`).join('')}</div>`+({jn:pJn,hb:pHb,lg:pLg,vo:pVo,sk:pSk,gl:pGl,wh:pWh,ct:pCt,sp:pSp,br:pBr}[pv])()}
+function pJn(){const j=S.jn[day]||{},f=(k,l,p)=>`<label>${l}</label>${TA('j'+k,2,p,j[k]||'')}`,n=Object.values(S.jn).filter(o=>Object.values(o).some(Boolean)).length;
+ return card('🙏 Journal · '+day,f('i','Morning intention','Today I will…')+f('g','3 things I am grateful for','1. 2. 3.')+f('w','What went well','')+f('b','What to improve','')+`<div class="row" style="margin-top:10px"><button class="btn go" onclick="saveJ()">Save</button></div><div class="mute">${n} days journaled so far</div>`)}
+function saveJ(){S.jn[day]={};['i','g','w','b'].forEach(k=>S.jn[day][k]=$('#j'+k).value.trim());save();render()}
+function pHb(){const hl=S.hl[day]||[],d7=[...Array(7)].map((_,i)=>{const d=new Date(day+'T00:00');d.setDate(d.getDate()-6+i);return iso(d)}),
+ stk=id=>{let n=0,d=new Date(day+'T00:00');if(!(S.hl[iso(d)]||[]).includes(id))d.setDate(d.getDate()-1);while((S.hl[iso(d)]||[]).includes(id)){n++;d.setDate(d.getDate()-1)}return n};
+ return card('🔥 Habit streaks',S.hab.map(h=>`<div class="item ${hl.includes(h.id)?'done':''}"><input type="checkbox" ${hl.includes(h.id)?'checked':''} onchange="hTog('${h.id}')"><div class="grow"><b>${esc(h.t)}</b><div class="mute">${d7.map(d=>(S.hl[d]||[]).includes(h.id)?'●':'○').join(' ')} · streak ${stk(h.id)}</div></div><button class="x" ${rm('hab',h.id)}>✕</button></div>`).join('')||empty('🔥','No habits yet.<br>Add one below.'))
+ +card('➕ New habit',`<div class="row"><input id="hbn" placeholder="e.g. Read 20 pages"><button class="btn go" onclick="addHab()">Add</button></div>`)}
+function hTog(id){const l=S.hl[day]=S.hl[day]||[],i=l.indexOf(id);i<0?l.push(id):l.splice(i,1);save();render()}
+function addHab(){const t=val('hbn');if(!t)return;S.hab.push({id:uid(),t});save();render()}
+function pLg(){const ks=Object.keys(S.ll).sort().reverse();let s=0,d=new Date();if(!S.ll[iso(d)])d.setDate(d.getDate()-1);while(S.ll[iso(d)]){s++;d.setDate(d.getDate()-1)}
+ return card('💡 One thing I learned today',`<div class="big">${s} <span class="mute" style="font-size:1rem">day streak</span></div><div class="row"><input id="lln" placeholder="Today I learned…" value="${esc(S.ll[day]||'')}"><button class="btn go" onclick="S.ll[day]=val('lln');if(!S.ll[day])delete S.ll[day];save();render()">Save</button></div>`)
+ +card('History',ks.slice(0,15).map(k=>`<div class="item"><div class="grow si"><div class="mute">${k}</div>${esc(S.ll[k])}</div></div>`).join('')||empty('💡','Nothing yet.'))}
+function pVo(){const L=S.vo,w=L.length?L[(new Date(day+'T00:00')/864e5|0)%L.length]:null;
+ return (w?card('🔤 Word of the day',`<div class="big si">${esc(w.w)}</div><div class="mute si" style="text-align:center">${esc(w.m)}</div>`):'')
+ +card('➕ Add a word',`<div class="row"><input id="vw" placeholder="Word"><input id="vm" placeholder="Meaning"></div><div class="row"><button class="btn go" onclick="addVo()">Add</button></div>`)
+ +card('Words ('+L.length+')',L.slice().reverse().map(x=>`<div class="item"><div class="grow si"><b>${esc(x.w)}</b><div class="mute">${esc(x.m)}</div></div><button class="x" ${rm('vo',x.id)}>✕</button></div>`).join('')||empty('🔤','No words yet.'))}
+function addVo(){const w=val('vw');if(!w)return;S.vo.push({id:uid(),w,m:val('vm')});save();render()}
+function pSk(){return card('⏳ Skill hours',S.sk.map(k=>`<div class="item blk"><div class="grow"><b>${esc(k.n)}</b><div class="mute">${k.h.toFixed(1)} / ${k.t} h</div><div class="bar"><i style="width:${Math.min(100,k.h/k.t*100)}%"></i></div><div class="row" style="margin:6px 0 0"><input id="skh_${k.id}" type="number" step="0.5" placeholder="Hours" style="padding:8px"><button class="btn go" onclick="skAdd('${k.id}')">+ Add</button></div></div><button class="x" ${rm('sk',k.id)}>✕</button></div>`).join('')||empty('⏳','Track hours on voice, English, marketing…'))
+ +card('➕ New skill',`<div class="row"><input id="skn" placeholder="Skill"><input id="skt" type="number" inputmode="numeric" placeholder="Target hours"></div><div class="row"><button class="btn go" onclick="addSk()">Add</button></div>`)}
+function addSk(){const n=val('skn');if(!n)return;S.sk.push({id:uid(),n,t:+val('skt')||100,h:0});save();render()}
+function skAdd(id){const h=parseFloat(val('skh_'+id));if(h>0){S.sk.find(x=>x.id===id).h+=h;save();render()}}
+function pGl(){return card('🎯 Goals and milestones',S.gl.map(g=>{const d=g.s.filter(x=>x.d).length;return `<div class="item blk" style="display:block"><div class="bk"><b>${esc(g.t)}</b><button class="x" ${rm('gl',g.id)}>✕</button></div><div class="mute">${g.due?'by '+esc(g.due)+' · ':''}${d}/${g.s.length} steps</div><div class="bar"><i style="width:${g.s.length?d/g.s.length*100:0}%"></i></div>${g.s.map((x,i)=>`<div class="item ${x.d?'done':''}"><input type="checkbox" ${x.d?'checked':''} onchange="glT('${g.id}',${i})"><div class="grow">${esc(x.t)}</div></div>`).join('')}<div class="row" style="margin:8px 0 0"><input id="gls_${g.id}" placeholder="Add a step" style="padding:8px"><button class="btn" onclick="glA('${g.id}')">+</button></div></div>`}).join('')||empty('🎯','No goals yet.'))
+ +card('➕ New goal',`<div class="row"><input id="glt" placeholder="Goal"></div><div class="row"><input id="gld" type="date"></div><div class="row"><button class="btn go" onclick="addGl()">Add goal</button></div>`)}
+function addGl(){const t=val('glt');if(!t)return;S.gl.push({id:uid(),t,due:val('gld'),s:[]});save();render()}
+function glA(id){const t=val('gls_'+id);if(!t)return;S.gl.find(x=>x.id===id).s.push({t,d:0});save();render()}
+function glT(id,i){const x=S.gl.find(g=>g.id===id).s[i];x.d=x.d?0:1;save();render()}
+function pWh(){const lo=LW.filter(a=>S.lw[a]).sort((a,b)=>S.lw[a]-S.lw[b])[0];
+ return card('🕸️ Life wheel (1–10)',LW.map(a=>`<label>${a}: <b>${S.lw[a]||'not rated'}</b></label><input type="range" min="1" max="10" value="${S.lw[a]||5}" onchange="S.lw['${a}']=+this.value;save();render()" style="padding:0">`).join('')+(lo?`<p class="mute">Lowest now: <b>${lo}</b>. Pick one small action for it this week.</p>`:''))}
+function pCt(){const t=iso(new Date());return card('🤝 People to follow up',S.ct.slice().sort((a,b)=>(a.f||'9').localeCompare(b.f||'9')).map(c=>`<div class="item ${c.f&&c.f<=t?'High':''}"><div class="grow"><b>${esc(c.n)}</b><div class="mute">${esc(c.w)}${c.f?' · follow up '+c.f:''}</div></div><button class="btn" onclick="ctD('${c.id}')">+7d</button><button class="x" ${rm('ct',c.id)}>✕</button></div>`).join('')||empty('🤝','Studios, clients, mentors…'))
+ +card('➕ Add a contact',`<div class="row"><input id="ctn" placeholder="Name"><input id="ctw" placeholder="Who / why"></div><div class="row"><div><label style="margin-top:0">Follow up on</label><input id="ctf" type="date"></div></div><div class="row"><button class="btn go" onclick="addCt()">Add</button></div>`)}
+function addCt(){const n=val('ctn');if(!n)return;S.ct.push({id:uid(),n,w:val('ctw'),f:val('ctf')});save();render()}
+function ctD(id){const d=new Date();d.setDate(d.getDate()+7);S.ct.find(c=>c.id===id).f=iso(d);save();render()}
+function pSp(){const m=day.slice(0,7),L=S.sp.filter(x=>x.d.slice(0,7)===m),g=S.sg;
+ return card('💸 Spending · '+m,`<div class="big">${_rs(L.reduce((s,x)=>s+x.a,0))}</div><div class="row"><input id="spa" type="number" inputmode="numeric" placeholder="Amount (Rs.)"><input id="spn" placeholder="What for?"></div><div class="row"><button class="btn go" onclick="addSp()">Add</button></div>`+L.slice().reverse().slice(0,10).map(x=>`<div class="item"><div class="grow"><b>${_rs(x.a)}</b> <span class="mute">${esc(x.n)} · ${x.d}</span></div><button class="x" ${rm('sp',x.id)}>✕</button></div>`).join(''))
+ +card('🐖 Savings goal',`<div class="mute">${_rs(g.s)} of ${_rs(g.t)}</div><div class="bar"><i style="width:${g.t?Math.min(100,g.s/g.t*100):0}%"></i></div><div class="row"><div><label style="margin-top:0">Target</label><input type="number" value="${g.t||''}" onchange="S.sg.t=+this.value||0;save();render()"></div><div><label style="margin-top:0">Saved so far</label><input type="number" value="${g.s||''}" onchange="S.sg.s=+this.value||0;save();render()"></div></div>`)}
+function addSp(){const a=parseFloat(val('spa'));if(!(a>0)){alert('Enter an amount.');return}S.sp.push({id:uid(),d:day,a,n:val('spn')});save();render()}
+function pBr(){return card('🌬️ Breathing 4-4-6',`<div class="big" id="bph" style="font-size:1.6rem;padding:20px 0">Ready</div><div class="mute" style="text-align:center" id="bct">8 rounds · about 2 minutes</div><div class="row" style="margin-top:10px"><button class="btn go" onclick="brStart()">Start</button><button class="btn" onclick="brStop();render()">Stop</button></div>`)}
+function brStart(){brStop();const P=[['Breathe in',4],['Hold',4],['Breathe out',6]];let i=0,s=P[0][1],r=1;
+ const u=()=>{const a=$('#bph');if(!a){brStop();return}a.textContent=P[i][0]+' · '+s;$('#bct').textContent='Round '+r+' of 8'};u();
+ bt=setInterval(()=>{s--;if(s<=0){i=(i+1)%3;if(!i&&++r>8){brStop();const a=$('#bph');if(a)a.textContent='Done 🌿';return}s=P[i][1];navigator.vibrate&&navigator.vibrate(80)}u()},1000)}
+function brStop(){clearInterval(bt);bt=null}
+render();
+</script>
+<script>
+let _ip=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();_ip=e;const b=document.createElement('button');b.className='btn go';b.textContent='📲 Install app';b.style.cssText='position:fixed;left:14px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:50';b.onclick=()=>{_ip.prompt();b.remove()};document.body.appendChild(b)});
+addEventListener('appinstalled',()=>{const b=[...document.querySelectorAll('button')].find(x=>x.textContent.includes('Install app'));b&&b.remove()});
+</script><script>
+function nbk(){const C=window.Capacitor;if(!(C&&C.isNativePlatform&&C.isNativePlatform()))return false;const P=C.Plugins;S.lastBackup=Date.now();save();
+ P.Filesystem.writeFile({path:'planner-backup.json',data:JSON.stringify(S),directory:'CACHE',encoding:'utf8'}).then(r=>P.Share.share({title:'Planner backup',url:r.uri})).catch(()=>alert('Could not save the backup.'));return true}
+</script></body></html>
